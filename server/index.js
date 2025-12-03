@@ -146,23 +146,33 @@ app.post('/api/mpesa/stkpush', async (req, res) => {
 
 // M-PESA Callback
 app.post('/api/mpesa/callback', async (req, res) => {
-  console.log('M-PESA Callback received:', JSON.stringify(req.body, null, 2));
-
   try {
-    const { Body } = req.body;
-    const { stkCallback } = Body;
+    console.log('----------- M-PESA CALLBACK RECEIVED -----------');
+    console.log('Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('Body:', JSON.stringify(req.body, null, 2));
 
+    const { Body } = req.body;
+    
+    if (!Body || !Body.stkCallback) {
+      console.error('Invalid callback structure:', req.body);
+      return res.status(400).json({ error: 'Invalid callback structure' });
+    }
+
+    const { stkCallback } = Body;
     const checkoutRequestId = stkCallback.CheckoutRequestID;
     const resultCode = stkCallback.ResultCode;
     const resultDesc = stkCallback.ResultDesc;
+
+    console.log(`Processing CheckoutRequestID: ${checkoutRequestId}, ResultCode: ${resultCode}`);
 
     // Find the transaction in Firestore
     const paymentsRef = db.collection('payments');
     const snapshot = await paymentsRef.where('checkoutRequestId', '==', checkoutRequestId).get();
 
     if (snapshot.empty) {
-      console.log('No matching transaction found');
-      return res.json({ success: true });
+      console.warn(`No matching transaction found for CheckoutRequestID: ${checkoutRequestId}`);
+      // Respond with success anyway to stop Safaricom from retrying
+      return res.json({ result: 'success', message: 'Transaction not found but received' });
     }
 
     const doc = snapshot.docs[0];
@@ -173,6 +183,7 @@ app.post('/api/mpesa/callback', async (req, res) => {
     };
 
     if (resultCode === 0) {
+      console.log('Payment Successful! Updating record...');
       // Payment successful
       const callbackMetadata = stkCallback.CallbackMetadata?.Item || [];
       const mpesaReceiptNumber = callbackMetadata.find(item => item.Name === 'MpesaReceiptNumber')?.Value;
@@ -184,17 +195,19 @@ app.post('/api/mpesa/callback', async (req, res) => {
       updateData.transactionDate = transactionDate;
       updateData.phoneNumber = phoneNumber;
     } else {
+      console.log('Payment Failed/Cancelled. Updating record...');
       // Payment failed
       updateData.status = 'failed';
     }
 
     await doc.ref.update(updateData);
-    console.log('Transaction updated successfully');
+    console.log('Transaction updated successfully in Firestore');
 
-    res.json({ success: true });
+    res.json({ result: 'success' });
   } catch (error) {
-    console.error('Callback processing error:', error);
-    res.status(500).json({ error: 'Failed to process callback' });
+    console.error('CRITICAL CALLBACK ERROR:', error);
+    // Respond with 500 so Safaricom knows something went wrong (or 200 to stop retries if it's a logic error)
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
