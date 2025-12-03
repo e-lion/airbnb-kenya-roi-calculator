@@ -1,0 +1,5 @@
+{
+  "name": "Airbnb Kenya ROI Calculator",
+  "description": "A professional tool for Kenyan real estate investors to estimate Airbnb setup costs, revenue, and ROI using real-time market data simulations and M-PESA integration.",
+  "requestFramePermissions": []
+}
