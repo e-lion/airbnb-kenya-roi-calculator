@@ -1,7 +1,7 @@
 import React from 'react';
-import { 
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
-  AreaChart, Area, PieChart, Pie, Cell 
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  AreaChart, Area, PieChart, Pie, Cell
 } from 'recharts';
 import { Download, Lock, Share2, TrendingUp, DollarSign, Calendar } from 'lucide-react';
 import { CalculationResult, AcquisitionModel } from '../types';
@@ -24,7 +24,7 @@ const formatMoney = (val: number) => {
 };
 
 export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, isLocked, onUnlock, model }) => {
-  
+
   // If locked, we blur the content and show an overlay
   const blurClass = isLocked ? "blur-md select-none opacity-50 pointer-events-none" : "";
 
@@ -39,11 +39,11 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, isL
             <p className="text-slate-600 mb-6">
               Get the detailed breakdown, 3-year cash flow projections, and exportable PDF report.
             </p>
-            <button 
+            <button
               onClick={onUnlock}
               className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-emerald-600/30 transition transform hover:-translate-y-1"
             >
-              Unlock Now (KES 499)
+              Unlock Now (KES 99)
             </button>
           </div>
         </div>
@@ -94,17 +94,17 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, isL
             <AreaChart data={results.monthlyBreakdown}>
               <defs>
                 <linearGradient id="colorCum" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#059669" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#059669" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#059669" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#059669" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis dataKey="month" label={{ value: 'Months', position: 'insideBottom', offset: -5 }} />
-              <YAxis 
-                tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`} 
+              <YAxis
+                tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`}
                 width={60}
               />
-              <Tooltip 
-                formatter={(val: number) => formatMoney(val)} 
+              <Tooltip
+                formatter={(val: number) => formatMoney(val)}
                 labelFormatter={(label) => `Month ${label}`}
               />
               <Area type="monotone" dataKey="cumulative" stroke="#059669" fillOpacity={1} fill="url(#colorCum)" />
@@ -151,12 +151,12 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, isL
         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <h3 className="font-semibold text-slate-800">Financial Summary</h3>
           <div className="flex gap-3">
-             <button className="flex items-center gap-2 text-slate-600 hover:text-emerald-600 transition">
-                <Share2 size={16} /> Share
-             </button>
-             <button className="flex items-center gap-2 text-emerald-600 font-medium hover:text-emerald-700 transition">
-                <Download size={16} /> Export PDF
-             </button>
+            <button className="flex items-center gap-2 text-slate-600 hover:text-emerald-600 transition">
+              <Share2 size={16} /> Share
+            </button>
+            <button className="flex items-center gap-2 text-emerald-600 font-medium hover:text-emerald-700 transition">
+              <Download size={16} /> Export PDF
+            </button>
           </div>
         </div>
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
@@ -181,10 +181,10 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, isL
             <span className="font-semibold text-emerald-700">{formatMoney(results.netOperatingIncome)}</span>
           </div>
           {model === AcquisitionModel.BUY && (
-             <div className="flex justify-between border-b border-slate-100 pb-2">
-               <span className="text-slate-600">Cap Rate</span>
-               <span className="font-semibold text-blue-600">{(results.capRate || 0).toFixed(2)}%</span>
-             </div>
+            <div className="flex justify-between border-b border-slate-100 pb-2">
+              <span className="text-slate-600">Cap Rate</span>
+              <span className="font-semibold text-blue-600">{(results.capRate || 0).toFixed(2)}%</span>
+            </div>
           )}
         </div>
       </div>
