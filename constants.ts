@@ -100,4 +100,4 @@ export const OPERATING_COSTS = {
 };
 
 export const DEFAULT_MORTGAGE_RATE = 14.5; // Current Kenya Avg
-export const PAYMENT_AMOUNT_KES = 99;
+export const PAYMENT_AMOUNT_KES = Number(import.meta.env.VITE_PAYMENT_AMOUNT) || 99;

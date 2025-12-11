@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import { Download, Lock, Share2, TrendingUp, DollarSign, Calendar } from 'lucide-react';
 import { CalculationResult, AcquisitionModel } from '../types';
+import { PAYMENT_AMOUNT_KES } from '../constants';
 
 interface ResultsDashboardProps {
   results: CalculationResult;
@@ -43,7 +44,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, isL
               onClick={onUnlock}
               className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-emerald-600/30 transition transform hover:-translate-y-1"
             >
-              Unlock Now (KES 99)
+              Unlock Now (KES {PAYMENT_AMOUNT_KES})
             </button>
           </div>
         </div>
