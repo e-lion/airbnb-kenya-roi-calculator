@@ -46,25 +46,54 @@ export interface UserInputs {
   loanTermYears?: number;
   // Sublease specific
   monthsDeposit?: number;
+  // Smart Smart Customizations
+  managementFeePercent?: number;
+  customFurnishingCost?: number;
+  customMonthlyRent?: number;
+  customPropertyPrice?: number;
+  customCleaningCost?: number; // Per cleaning/day (avg)
+  customWifiCost?: number;
+  customElectricityCost?: number;
+  customWaterCost?: number;
+  customDstvCost?: number;
 }
 
 export interface CalculationResult {
   initialInvestment: number;
   furnishingCost: number;
+  monthlyRevenue: number;
   annualRevenue: number;
+  monthlyFixedCost: number; // Combined Mortgage/Rent
+  monthlyCashFlow: number;
   annualExpenses: number;
   netOperatingIncome: number;
-  cashOnCashReturn: number; // Percentage
-  capRate?: number; // Only for Buy
+  capRate?: number;
+  cashOnCashReturn: number;
   paybackPeriodMonths: number;
-  monthlyCashFlow: number;
-  monthlyBreakdown: {
-    month: number;
-    cashFlow: number;
-    cumulative: number;
-  }[];
-  expenseBreakdown: {
-    label: string;
-    amount: number;
-  }[];
+  monthlyBreakdown: { month: number; cumulative: number }[];
+  expenseBreakdown: { label: string; amount: number }[];
+
+  // Granular Startup Breakdown
+  startupCosts: {
+    furnishing: number;
+    depositRounded: number; // 2 months
+    firstMonthRent: number;
+    legalAdmin: number;
+    utilityDeposits: number;
+    fixtures: number;
+    total: number;
+  };
+
+  // Granular Monthly Opex Breakdown
+  monthlyOpex: {
+    rent: number;
+    cleaning: number;
+    internet: number;
+    electricity: number;
+    water: number;
+    dstv: number;
+    management: number;
+    platform: number;
+    maintenance: number;
+  };
 }

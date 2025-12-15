@@ -16,16 +16,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Initialize Firebase Admin
-admin.initializeApp({
-  credential: admin.credential.cert({
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  }),
-});
-
-const db = admin.firestore();
+import { db } from './firebase.js';
 
 // M-PESA Configuration
 const MPESA_CONSUMER_KEY = process.env.MPESA_CONSUMER_KEY;
@@ -241,6 +232,105 @@ app.get('/api/mpesa/status/:checkoutRequestId', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
+
+// Scraper Endpoint
+import { scrapeBuyRentKenya } from './services/scraperService.js';
+
+app.post('/api/admin/scrape', async (req, res) => {
+  try {
+    const { type, location, maxPages } = req.body;
+    console.log('Triggering scrape:', { type, location, maxPages });
+    const result = await scrapeBuyRentKenya(type, location, maxPages);
+    res.json(result);
+  } catch (error) {
+    console.error('Scrape error:', error);
+    res.status(500).json({ error: 'Scraping failed', details: error.message });
+  }
+});
+
+// Simple in-memory cache
+const marketDataCache = {};
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+
+// Market Data Endpoint
+app.get('/api/market-data', async (req, res) => {
+  try {
+    const { type, location, bedrooms } = req.query;
+    
+    if (!type || !location) {
+      return res.status(400).json({ error: 'Missing type or location query parameters' });
+    }
+
+    console.log(`Fetching market data for ${location} (${type}) - Beds: ${bedrooms || 'Any'}`);
+
+    // Check Cache
+    const cacheKey = `${type}-${location}-${bedrooms || 'any'}`;
+    const cachedEntry = marketDataCache[cacheKey];
+
+    if (cachedEntry && (Date.now() - cachedEntry.timestamp < CACHE_DURATION)) {
+        console.log('Serving from cache');
+        return res.json(cachedEntry.data);
+    }
+
+    const listingsRef = db.collection('market_listings');
+    let query = listingsRef
+      .where('type', '==', type)
+      .where('locationQuery', '==', location.toLowerCase());
+
+    if (bedrooms !== undefined && bedrooms !== null && bedrooms !== '') {
+        query = query.where('bedrooms', '==', parseInt(bedrooms));
+    }
+
+    const snapshot = await query.get();
+
+    if (snapshot.empty) {
+      return res.json({ 
+        averagePrice: 0, 
+        minPrice: 0, 
+        maxPrice: 0, 
+        sampleSize: 0
+      });
+    }
+
+    let total = 0;
+    let min = Infinity;
+    let max = -Infinity;
+    let count = 0;
+    
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.price) {
+        total += data.price;
+        if (data.price < min) min = data.price;
+        if (data.price > max) max = data.price;
+        count++;
+      }
+    });
+
+    const averagePrice = count > 0 ? Math.round(total / count) : 0;
+    
+    const result = {
+      averagePrice,
+      minPrice: count > 0 ? min : 0,
+      maxPrice: count > 0 ? max : 0,
+      sampleSize: count,
+      location,
+      type
+    };
+
+    // Save to Cache
+    marketDataCache[cacheKey] = {
+        timestamp: Date.now(),
+        data: result
+    };
+    
+    res.json(result);
+    
+  } catch (error) {
+    console.error('Market data error:', error);
+    res.status(500).json({ error: 'Failed to fetch market data' });
+  }
+});
 
 // Only listen if running directly (not imported)
 if (process.env.NODE_ENV !== 'production') {

@@ -93,10 +93,41 @@ export const BASE_FURNISHING_COSTS = {
 };
 
 export const OPERATING_COSTS = {
-  MANAGEMENT_FEE_PCT: 0.15, // 15%
+  MANAGEMENT_FEE_PCT: 0.15, // 15% Standard Agency
   PLATFORM_FEE_PCT: 0.03, // 3% Airbnb
   MAINTENANCE_RESERVE_PCT: 0.05, // 5%
-  UTILITIES_BASE: 5000, // Monthly base
+};
+
+export const STARTUP_COSTS = {
+  DEPOSIT_MONTHS: 2,
+  ADVANCE_RENT_MONTHS: 1,
+  LEGAL_ADMIN_FEE: 5000,
+  UTILITY_DEPOSIT: 7500, // Water/Elec deposit
+  FIXTURES_AND_FITTINGS: 20000, // WiFi install, small decor, locks
+};
+
+export const OPERATING_CONSTANTS = {
+  CLEANING_PER_DAY: 750, // Cleaner daily rate
+  INTERNET_MONTHLY: 3000,
+  ELECTRICITY_MONTHLY: {
+    [PropertyType.STUDIO]: 2500,
+    [PropertyType.ONE_BEDROOM]: 3500,
+    [PropertyType.TWO_BEDROOM]: 5000,
+    [PropertyType.THREE_BEDROOM]: 7000,
+  },
+  WATER_MONTHLY: {
+    [PropertyType.STUDIO]: 500,
+    [PropertyType.ONE_BEDROOM]: 1000,
+    [PropertyType.TWO_BEDROOM]: 1500,
+    [PropertyType.THREE_BEDROOM]: 2000,
+  },
+  DSTV_MONTHLY: 3000, // Premium Package approx
+};
+
+export const ISP_PROVIDERS = {
+  'nbo-westlands': ['Safaricom Home Fibre', 'Zuku Fiber', 'JTL Faiba'],
+  'nbo-kilimani': ['Safaricom Home Fibre', 'Zuku Fiber', 'JTL Faiba'],
+  'msa-nyali': ['Safaricom Home Fibre', 'Zuku Fiber'],
 };
 
 export const DEFAULT_MORTGAGE_RATE = 14.5; // Current Kenya Avg
