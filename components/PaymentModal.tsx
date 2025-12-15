@@ -13,6 +13,8 @@ type PaymentStatus = 'idle' | 'processing' | 'success' | 'error';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
+import ReactDOM from 'react-dom';
+
 export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [phone, setPhone] = useState('');
   const [status, setStatus] = useState<PaymentStatus>('idle');
@@ -106,9 +108,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onS
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
+  return ReactDOM.createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center h-screen w-screen overflow-hidden">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={onClose}></div>
+
+      {/* Modal */}
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative z-10 mx-4 animate-in fade-in zoom-in-95 duration-200">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
@@ -154,8 +160,9 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onS
                   <Smartphone size={20} />
                   Pay with M-PESA
                 </button>
-                <p className="text-xs text-center text-slate-500 mt-4">
-                  Secured by Safaricom Daraja API
+                <p className="text-xs text-center text-slate-500 mt-4 flex items-center justify-center gap-1">
+                  <CheckCircle size={10} className="text-emerald-600" />
+                  Secure Payment processed instantly
                 </p>
               </div>
             </>
@@ -196,6 +203,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onS
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
