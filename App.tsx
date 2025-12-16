@@ -5,7 +5,9 @@ import {
   CheckCircle2,
   ChevronRight,
   Instagram,
-  Twitter
+  Twitter,
+  BarChart3,
+  Shield
 } from 'lucide-react';
 
 import { CalculatorStepper } from './components/CalculatorStepper';
@@ -27,56 +29,79 @@ const LandingPage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative min-h-screen bg-slate-900 text-white overflow-hidden">
+      {/* Background Gradients */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-teal-500/10 rounded-full blur-[120px]" />
+      </div>
+
       {/* Hero Section */}
-      <div className="pt-24 pb-16 lg:pt-32 lg:pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
-          Is that Airbnb <br className="hidden sm:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
-            Actually Profitable?
+      <div className="relative z-10 pt-24 pb-16 lg:pt-32 lg:pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/50 border border-emerald-500/30 text-emerald-400 text-sm font-medium mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          Live Kenya Market Data 2024
+        </div>
+
+        <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight mb-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
+          Master the Kenyan <br className="hidden sm:block" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">
+            Airbnb Market
           </span>
         </h1>
-        <p className="mt-4 max-w-2xl mx-auto text-xl text-slate-500 mb-10">
+
+        <p className="mt-4 max-w-2xl mx-auto text-xl text-slate-300 mb-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200 leading-relaxed">
           Stop guessing. Estimate setup costs, revenue, and cash flow for properties in Nairobi, Mombasa, and Kisumu in seconds.
         </p>
-        <div className="flex justify-center gap-4">
+
+        <div className="flex justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
           <button
             onClick={() => navigate('/calculator')}
-            className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-full shadow-lg shadow-emerald-600/30 transition transform hover:-translate-y-1 text-lg flex items-center gap-2"
+            className="group relative px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-full shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)] transition-all hover:scale-105 flex items-center gap-3 text-lg"
           >
-            Start Calculator <ChevronRight />
+            Start Calculator
+            <ChevronRight className="group-hover:translate-x-1 transition-transform" />
+            <div className="absolute inset-0 rounded-full ring-2 ring-white/20 group-hover:ring-white/40 transition-all animate-pulse" />
           </button>
         </div>
       </div>
 
       {/* Features */}
-      <div className="bg-white py-24 border-t border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-3 gap-12">
-          <div className="text-left space-y-4">
-            <div className="h-12 w-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-4">
-              <CheckCircle2 />
+      <div className="relative z-10 py-24 border-t border-slate-800/50 bg-slate-900/50 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-3 gap-8">
+          {/* Feature 1 */}
+          <div className="group p-8 rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800/80 transition-all duration-300">
+            <div className="h-14 w-14 bg-emerald-900/50 rounded-2xl flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 transition-transform duration-300 border border-emerald-500/20">
+              <BarChart3 size={28} />
             </div>
-            <h3 className="text-xl font-bold">Real Market Data</h3>
-            <p className="text-slate-500 leading-relaxed">
-              We aggregate data from Property24, Jumia, and AirDNA to give you realistic nightly rates and furnishing costs.
+            <h3 className="text-xl font-bold text-white mb-3">Real Market Data</h3>
+            <p className="text-slate-400 leading-relaxed">
+              We aggregate real-time signals from trusted sources to give you realistic ownership costs, nightly rates, and trends.
             </p>
           </div>
-          <div className="text-left space-y-4">
-            <div className="h-12 w-12 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600 mb-4">
-              <CheckCircle2 />
+
+          {/* Feature 2 */}
+          <div className="group p-8 rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-purple-500/50 hover:bg-slate-800/80 transition-all duration-300">
+            <div className="h-14 w-14 bg-purple-900/50 rounded-2xl flex items-center justify-center text-purple-400 mb-6 group-hover:scale-110 transition-transform duration-300 border border-purple-500/20">
+              <Building2 size={28} />
             </div>
-            <h3 className="text-xl font-bold">Furnishing Estimates</h3>
-            <p className="text-slate-500 leading-relaxed">
-              Get a detailed Bill of Materials (BOM) cost for Studio, 1BR, or 2BR units based on Budget, Mid, or Premium finishes.
+            <h3 className="text-xl font-bold text-white mb-3">Furnishing Costs</h3>
+            <p className="text-slate-400 leading-relaxed">
+              Get detailed furnishing estimates for Studio, 1BR, or 2BR units based on Budget, Mid, or Premium finish standards.
             </p>
           </div>
-          <div className="text-left space-y-4">
-            <div className="h-12 w-12 bg-orange-50 rounded-xl flex items-center justify-center text-orange-600 mb-4">
-              <CheckCircle2 />
+
+          {/* Feature 3 */}
+          <div className="group p-8 rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-orange-500/50 hover:bg-slate-800/80 transition-all duration-300">
+            <div className="h-14 w-14 bg-orange-900/50 rounded-2xl flex items-center justify-center text-orange-400 mb-6 group-hover:scale-110 transition-transform duration-300 border border-orange-500/20">
+              <Shield size={28} />
             </div>
-            <h3 className="text-xl font-bold">Buy vs. Rent-to-Rent</h3>
-            <p className="text-slate-500 leading-relaxed">
-              Compare the ROI of buying a unit on mortgage versus the "Arbitrage" model of subleasing.
+            <h3 className="text-xl font-bold text-white mb-3">Buy vs. Rent</h3>
+            <p className="text-slate-400 leading-relaxed">
+              Compare the ROI of buying a unit on mortgage versus the "Rent-to-Rent" arbitrage model to find your best strategy.
             </p>
           </div>
         </div>
@@ -94,6 +119,7 @@ interface CalculatorPageProps {
 const CalculatorPage: React.FC<CalculatorPageProps> = ({ isPaid, onPaid }) => {
   const [showPayment, setShowPayment] = useState(false);
   const calculatorRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const [inputs, setInputs] = useState<UserInputs>({
     regionId: 'nbo-westlands', // Fixed for Smart Calc
@@ -111,7 +137,12 @@ const CalculatorPage: React.FC<CalculatorPageProps> = ({ isPaid, onPaid }) => {
   useEffect(() => {
     // Auto scroll to calculator on mount
     calculatorRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
+
+    // Strict Protection: If not paid, show modal immediately on mount
+    if (!isPaid) {
+      setShowPayment(true);
+    }
+  }, [isPaid]); // Add isPaid to dependency array to re-check if it changes
 
   const handleCalculate = async () => {
     // 1. Fetch live market data first
@@ -142,6 +173,11 @@ const CalculatorPage: React.FC<CalculatorPageProps> = ({ isPaid, onPaid }) => {
     setTimeout(() => {
       const resultsElement = document.getElementById('results-section');
       resultsElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Secondary check: ensure modal opens if they somehow clicked without paying
+      if (!isPaid) {
+        setShowPayment(true);
+      }
     }, 100);
   };
 
@@ -175,7 +211,13 @@ const CalculatorPage: React.FC<CalculatorPageProps> = ({ isPaid, onPaid }) => {
 
       <PaymentModal
         isOpen={showPayment}
-        onClose={() => setShowPayment(false)}
+        onClose={() => {
+          setShowPayment(false);
+          // Protection: If they close the modal without paying, send them back to home
+          if (!isPaid) {
+            navigate('/');
+          }
+        }}
         onSuccess={() => {
           onPaid();
           setShowPayment(false);

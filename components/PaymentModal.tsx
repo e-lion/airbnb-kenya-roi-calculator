@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Smartphone, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { X, Smartphone, CheckCircle, AlertCircle, Loader2, Activity } from 'lucide-react';
 import { PAYMENT_AMOUNT_KES } from '../constants';
 import axios from 'axios';
 
@@ -117,22 +117,57 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onS
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative z-10 mx-4 animate-in fade-in zoom-in-95 duration-200">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+          className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors z-20"
         >
           <X size={24} />
         </button>
 
-        <div className="bg-emerald-600 p-6 text-white text-center">
-          <h2 className="text-xl font-bold">Unlock Full Report</h2>
-          <p className="text-emerald-100 mt-2 text-sm">
-            Get detailed ROI analysis, PDF export, and sensitivity tools.
-          </p>
+        <div className="bg-gradient-to-br from-emerald-600 to-teal-800 p-6 text-white text-center relative overflow-hidden">
+          {/* Abstract Data Background */}
+          <div className="absolute top-[-10%] right-[-5%] p-4 opacity-5 rotate-12 pointer-events-none">
+            <Activity size={150} strokeWidth={1} />
+          </div>
+
+          {/* Live Pulse Indicator */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-emerald-500/20 backdrop-blur-md px-3 py-1 rounded-full border border-emerald-400/30">
+            <div className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+            </div>
+            <span className="text-[10px] uppercase tracking-widest font-bold text-emerald-100">Live Data Feed</span>
+          </div>
+
+          <div className="mt-6 relative z-10">
+            <h2 className="text-2xl font-bold mb-2">Unlock Market Intelligence</h2>
+            <p className="text-emerald-100 text-sm max-w-xs mx-auto leading-relaxed">
+              We aggregate <span className="font-semibold text-white border-b border-emerald-400/50 pb-0.5">real-time signals</span> from trusted kenyan market data sources.
+            </p>
+          </div>
         </div>
 
         <div className="p-6">
           {status === 'idle' && (
             <>
-              <div className="flex justify-between items-center mb-6">
+              <div className="mb-6 space-y-3">
+                <div className="flex items-start gap-3 text-sm text-slate-600">
+                  <div className="p-1 bg-emerald-100 rounded-full mt-0.5"><CheckCircle size={12} className="text-emerald-600" /></div>
+                  <span><strong className="text-slate-800">Live Revenue Feeds:</strong> Real-time occupancy & nightly rates from comparable listings.</span>
+                </div>
+                <div className="flex items-start gap-3 text-sm text-slate-600">
+                  <div className="p-1 bg-emerald-100 rounded-full mt-0.5"><CheckCircle size={12} className="text-emerald-600" /></div>
+                  <span><strong className="text-slate-800">Investment Grade Data:</strong> Bank-ready 5-year cash flow models.</span>
+                </div>
+                <div className="flex items-start gap-3 text-sm text-slate-600">
+                  <div className="p-1 bg-emerald-100 rounded-full mt-0.5"><CheckCircle size={12} className="text-emerald-600" /></div>
+                  <span><strong className="text-slate-800">Smart Benchmarking:</strong> Compare your potential ROI against top performers in the area.</span>
+                </div>
+                <div className="flex items-start gap-3 text-sm text-slate-600">
+                  <div className="p-1 bg-emerald-100 rounded-full mt-0.5"><CheckCircle size={12} className="text-emerald-600" /></div>
+                  <span><strong className="text-slate-800">Risk Analysis:</strong> Buy vs. Rent-to-Rent deep-dive scenarios.</span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center mb-6 pt-4 border-t border-slate-100">
                 <span className="text-slate-600 font-medium">Total Amount</span>
                 <span className="text-2xl font-bold text-slate-900">KES {PAYMENT_AMOUNT_KES}</span>
               </div>
@@ -145,6 +180,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onS
                   <span className="absolute left-3 top-3 text-slate-400 font-medium">+254</span>
                   <input
                     type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     placeholder="7XX XXX XXX"
                     className="w-full pl-16 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
                     value={phone}

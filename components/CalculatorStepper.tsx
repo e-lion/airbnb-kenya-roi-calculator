@@ -334,7 +334,7 @@ export const CalculatorStepper: React.FC<CalculatorStepperProps> = ({ inputs, se
         className="w-full py-5 bg-gradient-to-br from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-lg rounded-2xl shadow-xl shadow-emerald-900/20 transition-all transform active:scale-[0.98] flex items-center justify-center gap-3 group relative overflow-hidden"
       >
         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-        <span className="relative z-10">Reveal Profit Potential 🚀</span>
+        <span className="relative z-10">Generate AirBnB ROI</span>
         <TrendingUp className="relative z-10 group-hover:translate-x-1 transition-transform" />
       </button>
     </div>
