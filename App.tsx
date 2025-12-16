@@ -289,8 +289,7 @@ const App: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-slate-500 text-sm">
           <p>© 2025 Airbnb Kenya ROI. Data is for estimation only.</p>
           <div className="flex gap-6 mt-4 md:mt-0">
-            <a href="#" className="hover:text-emerald-600"><Twitter size={20} /></a>
-            <a href="#" className="hover:text-emerald-600"><Instagram size={20} /></a>
+            <a href="https://www.instagram.com/kenya_hustle/" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-600"><Instagram size={20} /></a>
           </div>
         </div>
       </footer>
