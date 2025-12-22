@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
   Building2,
   CheckCircle2,
@@ -7,7 +7,8 @@ import {
   Instagram,
   Twitter,
   BarChart3,
-  Shield
+  Shield,
+  ArrowLeft
 } from 'lucide-react';
 
 import { CalculatorStepper } from './components/CalculatorStepper';
@@ -114,37 +115,34 @@ const LandingPage: React.FC = () => {
 interface CalculatorPageProps {
   isPaid: boolean;
   onPaid: () => void;
+  inputs: UserInputs;
+  setInputs: React.Dispatch<React.SetStateAction<UserInputs>>;
+  setResults: React.Dispatch<React.SetStateAction<CalculationResult | null>>;
 }
 
-const CalculatorPage: React.FC<CalculatorPageProps> = ({ isPaid, onPaid }) => {
+const CalculatorPage: React.FC<CalculatorPageProps> = ({
+  isPaid,
+  onPaid,
+  inputs,
+  setInputs,
+  setResults
+}) => {
   const [showPayment, setShowPayment] = useState(false);
   const calculatorRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const [inputs, setInputs] = useState<UserInputs>({
-    regionId: 'nbo-westlands', // Fixed for Smart Calc
-    propertyType: PropertyType.ONE_BEDROOM,
-    acquisitionModel: AcquisitionModel.SUBLEASE,
-    furnishingStandard: FurnishingStandard.MID_RANGE,
-    downPaymentPercent: 20,
-    interestRate: 14,
-    loanTermYears: 15,
-    monthsDeposit: 2,
-  });
-
-  const [results, setResults] = useState<CalculationResult | null>(null);
-
   useEffect(() => {
     // Auto scroll to calculator on mount
     calculatorRef.current?.scrollIntoView({ behavior: 'smooth' });
-
-    // Strict Protection: If not paid, show modal immediately on mount
-    if (!isPaid) {
-      setShowPayment(true);
-    }
-  }, [isPaid]); // Add isPaid to dependency array to re-check if it changes
+  }, []);
 
   const handleCalculate = async () => {
+    // Paywall Gate: Require payment before generating report
+    if (!isPaid) {
+      setShowPayment(true);
+      return;
+    }
+
     // 1. Fetch live market data first
     let calculationInputs = { ...inputs };
 
@@ -166,19 +164,11 @@ const CalculatorPage: React.FC<CalculatorPageProps> = ({ isPaid, onPaid }) => {
     const res = calculateROI(calculationInputs);
     setResults(res);
 
-    // 3. Update inputs state to reflect what was used (so dashboard sees it)
+    // 3. Update inputs state to reflect what was used
     setInputs(calculationInputs);
 
-    // Scroll to results
-    setTimeout(() => {
-      const resultsElement = document.getElementById('results-section');
-      resultsElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-      // Secondary check: ensure modal opens if they somehow clicked without paying
-      if (!isPaid) {
-        setShowPayment(true);
-      }
-    }, 100);
+    // 4. Navigate to Report page
+    navigate('/report');
   };
 
   return (
@@ -190,33 +180,12 @@ const CalculatorPage: React.FC<CalculatorPageProps> = ({ isPaid, onPaid }) => {
           onCalculate={handleCalculate}
           isPaid={isPaid}
         />
-
-        {results && (
-          <div id="results-section" className="animate-in fade-in slide-in-from-bottom-10 duration-700 scroll-mt-24">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-bold text-slate-900">Analysis Results</h2>
-              {!isPaid && (
-                <span className="text-sm text-slate-500 italic">Preview Mode</span>
-              )}
-            </div>
-            <ResultsDashboard
-              results={results}
-              inputs={inputs}
-              isLocked={!isPaid}
-              onUnlock={() => setShowPayment(true)}
-            />
-          </div>
-        )}
       </div>
 
       <PaymentModal
         isOpen={showPayment}
         onClose={() => {
           setShowPayment(false);
-          // Protection: If they close the modal without paying, send them back to home
-          if (!isPaid) {
-            navigate('/');
-          }
         }}
         onSuccess={() => {
           onPaid();
@@ -227,23 +196,91 @@ const CalculatorPage: React.FC<CalculatorPageProps> = ({ isPaid, onPaid }) => {
   );
 };
 
+// --- Report Page Component ---
+interface ReportPageProps {
+  results: CalculationResult | null;
+  inputs: UserInputs;
+  isPaid: boolean;
+  onUnlock: () => void;
+}
+
+const ReportPage: React.FC<ReportPageProps> = ({ results, inputs, isPaid, onUnlock }) => {
+  const navigate = useNavigate();
+
+  // Redirect if no results (e.g. direct valid access)
+  useEffect(() => {
+    if (!results) {
+      navigate('/calculator');
+    }
+  }, [results, navigate]);
+
+  if (!results) return null;
+
+  return (
+    <div className="bg-slate-50 py-12 min-h-screen">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-in fade-in duration-500">
+
+        {/* Navigation / Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <button
+            onClick={() => navigate('/calculator')}
+            className="group flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 hover:border-emerald-500 rounded-full shadow-sm hover:shadow-md transition-all duration-300 text-slate-600 hover:text-emerald-700 font-medium text-sm self-start"
+          >
+            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+            Edit Strategy
+          </button>
+
+          <h2 className="text-3xl font-bold text-slate-900">Analysis Report</h2>
+
+          {!isPaid && (
+            <span className="text-sm bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-medium">
+              Preview Mode
+            </span>
+          )}
+        </div>
+
+        <ResultsDashboard
+          results={results}
+          inputs={inputs}
+          isLocked={!isPaid}
+          onUnlock={onUnlock}
+        />
+      </div>
+    </div>
+  );
+};
+
 // --- Main App Component ---
 const App: React.FC = () => {
   const [isPaid, setIsPaid] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Check if user has already unlocked the calculator
-  // Check if user has already unlocked the calculator
-  // useEffect(() => {
-  //   const unlocked = localStorage.getItem('roiCalculatorUnlocked');
-  //   if (unlocked === 'true') {
-  //     setIsPaid(true);
-  //   }
-  // }, []);
+  // Lifted State
+  const [inputs, setInputs] = useState<UserInputs>({
+    regionId: 'nbo-westlands',
+    propertyType: PropertyType.ONE_BEDROOM,
+    acquisitionModel: AcquisitionModel.SUBLEASE,
+    furnishingStandard: FurnishingStandard.MID_RANGE,
+    downPaymentPercent: 20,
+    interestRate: 14,
+    loanTermYears: 15,
+    monthsDeposit: 2,
+  });
+  const [results, setResults] = useState<CalculationResult | null>(null);
+
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   const handlePaid = () => {
     setIsPaid(true);
     localStorage.setItem('roiCalculatorUnlocked', 'true');
+  };
+
+  const handleUnlockRequest = () => {
+    navigate('/calculator');
   };
 
   return (
@@ -280,7 +317,29 @@ const App: React.FC = () => {
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/calculator" element={<CalculatorPage isPaid={isPaid} onPaid={handlePaid} />} />
+          <Route
+            path="/calculator"
+            element={
+              <CalculatorPage
+                isPaid={isPaid}
+                onPaid={handlePaid}
+                inputs={inputs}
+                setInputs={setInputs}
+                setResults={setResults}
+              />
+            }
+          />
+          <Route
+            path="/report"
+            element={
+              <ReportPage
+                results={results}
+                inputs={inputs}
+                isPaid={isPaid}
+                onUnlock={handleUnlockRequest}
+              />
+            }
+          />
         </Routes>
       </main>
 
