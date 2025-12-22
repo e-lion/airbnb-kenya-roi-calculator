@@ -299,28 +299,12 @@ export const CalculatorStepper: React.FC<CalculatorStepperProps> = ({ inputs, se
   const renderAssumptionsStep = () => (
     <div className="space-y-8 animate-in slide-in-from-right duration-500">
       <div className="text-center space-y-2">
-        <h3 className="text-2xl font-bold text-slate-900">Smart Market Data</h3>
-        <p className="text-slate-500">Review our AI-driven estimates based on real-time market data.</p>
+        <h3 className="text-2xl font-bold text-slate-900">Customize Assumptions</h3>
+        <p className="text-slate-500">Adjust these market averages to match your specific property goals.</p>
       </div>
 
       <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden relative">
-        {/* Pro Overlay */}
-        {!isPaid && (
-          <div className="absolute inset-0 z-20 backdrop-blur-[2px] bg-white/50 flex flex-col items-center justify-center p-6 text-center">
-            <div className="bg-white p-4 rounded-full shadow-lg mb-4">
-              <Lock className="text-emerald-500" size={32} />
-            </div>
-            <h4 className="font-bold text-xl text-slate-900 mb-2">Pro Data Locked</h4>
-            <p className="text-slate-600 text-sm max-w-xs mb-6">
-              Unlock the full potential of your analysis by customizing granular costs, occupancy rates, and more.
-            </p>
-            <div className="px-4 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wide border border-emerald-200">
-              Smart Defaults Active
-            </div>
-          </div>
-        )}
-
-        <div className={`p-6 space-y-8 ${!isPaid ? 'opacity-40 pointer-events-none filter blur-[1px]' : ''}`}>
+        <div className="p-6 space-y-8">
           {/* Occupancy Rate Slider */}
           <div className="space-y-4">
             <div className="flex justify-between items-end">
@@ -364,10 +348,28 @@ export const CalculatorStepper: React.FC<CalculatorStepperProps> = ({ inputs, se
             />
           </div>
 
-          {/* Utilities Group */}
+          {/* Monthly Operating Costs Group */}
           <div className="pt-4 border-t border-slate-200">
-            <label className="text-sm font-bold text-slate-700 mb-4 block">Granular Utilities</label>
+            <label className="text-sm font-bold text-slate-700 mb-4 block">Monthly Operating Costs</label>
             <div className="grid grid-cols-1 gap-6">
+
+              {/* Cleaning (Daily Rate) */}
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs font-medium text-slate-500">
+                  <span>Cleaning (Daily Rate)</span>
+                  <span>KES {inputs.customCleaningCost || 500}</span>
+                </div>
+                <input
+                  type="range"
+                  min="200"
+                  max="2000"
+                  step="50"
+                  value={inputs.customCleaningCost !== undefined ? inputs.customCleaningCost : 500}
+                  onChange={(e) => handleChange('customCleaningCost', Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+                />
+              </div>
+
               {/* WiFi */}
               <div className="space-y-3">
                 <div className="flex justify-between text-xs font-medium text-slate-500">
@@ -384,6 +386,7 @@ export const CalculatorStepper: React.FC<CalculatorStepperProps> = ({ inputs, se
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
                 />
               </div>
+
               {/* Electricity */}
               <div className="space-y-3">
                 <div className="flex justify-between text-xs font-medium text-slate-500">
@@ -400,6 +403,41 @@ export const CalculatorStepper: React.FC<CalculatorStepperProps> = ({ inputs, se
                   className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
                 />
               </div>
+
+              {/* Water */}
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs font-medium text-slate-500">
+                  <span>Water Bill</span>
+                  <span>KES {inputs.customWaterCost || 1000}</span>
+                </div>
+                <input
+                  type="range"
+                  min="100"
+                  max="5000"
+                  step="100"
+                  value={inputs.customWaterCost !== undefined ? inputs.customWaterCost : 1000}
+                  onChange={(e) => handleChange('customWaterCost', Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+                />
+              </div>
+
+              {/* DStv / Entertainment */}
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs font-medium text-slate-500">
+                  <span>DStv / Entertainment</span>
+                  <span>KES {inputs.customDstvCost || 0}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="10000"
+                  step="500"
+                  value={inputs.customDstvCost !== undefined ? inputs.customDstvCost : 0}
+                  onChange={(e) => handleChange('customDstvCost', Number(e.target.value))}
+                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+                />
+              </div>
+
             </div>
           </div>
         </div>
