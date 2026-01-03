@@ -55,7 +55,7 @@ export interface UserInputs {
   customWifiCost?: number;
   customElectricityCost?: number;
   customWaterCost?: number;
-  customDstvCost?: number;
+  customNetflixCost?: number;
 }
 
 export interface CalculationResult {
@@ -87,11 +87,12 @@ export interface CalculationResult {
   // Granular Monthly Opex Breakdown
   monthlyOpex: {
     rent: number;
+    mortgage: number;
     cleaning: number;
     internet: number;
     electricity: number;
     water: number;
-    dstv: number;
+    netflix: number;
     management: number;
     platform: number;
     maintenance: number;

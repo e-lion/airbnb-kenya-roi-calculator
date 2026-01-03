@@ -1,21 +1,25 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   AreaChart, Area, PieChart, Pie, Cell, ReferenceLine, Legend
 } from 'recharts';
 import { Download, Lock, Share2, TrendingUp, DollarSign, Calendar, Info, CheckCircle2, AlertTriangle, HelpCircle, Briefcase, Wallet } from 'lucide-react';
+import { PaymentCard } from './PaymentModal';
 import { CalculationResult, AcquisitionModel, UserInputs, PropertyType } from '../types';
 import { PAYMENT_AMOUNT_KES, KENYA_REGIONS, OPERATING_COSTS, ISP_PROVIDERS } from '../constants';
-import { fetchMarketData, MarketData } from '../services/marketService';
+import { getSmartMarketData } from '../services/smartMarketService';
+import { MarketData } from '../services/marketService';
 import { InfoTooltip } from './ui/InfoTooltip';
 import { generatePDF } from '../utils/pdfGenerator';
+import { AiSummaryCard } from './AiSummaryCard';
+import { generateAiInsight } from '../utils/aiInsightGenerator';
 
 interface ResultsDashboardProps {
   results: CalculationResult;
   inputs: UserInputs;
-  isLocked: boolean;
-  onUnlock: () => void;
+  isLocked?: boolean;
+  onUnlock?: () => void;
+  onPaidSuccess?: () => void;
 }
 
 const COLORS = ['#059669', '#3b82f6', '#f59e0b', '#ef4444', '#64748b'];
@@ -31,7 +35,13 @@ const formatMoney = (val: number, abbreviate = false) => {
   }).format(val);
 };
 
-export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, inputs, isLocked, onUnlock }) => {
+export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
+  results,
+  inputs,
+  isLocked = false,
+  onUnlock,
+  onPaidSuccess
+}) => {
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [loading, setLoading] = useState(false);
   const regionName = KENYA_REGIONS.find(r => r.id === inputs.regionId)?.name || inputs.regionId;
@@ -39,11 +49,14 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, inp
 
   const blurClass = isLocked ? "blur-md select-none opacity-50 pointer-events-none" : "";
 
+  // Generate Insight
+  const aiInsight = generateAiInsight(results, inputs, regionName);
+
   useEffect(() => {
     // Fetch market data when inputs result changes
     if (results) {
       setLoading(true);
-      fetchMarketData(inputs).then(data => {
+      getSmartMarketData(inputs).then(data => {
         if (data && data.sampleSize > 0) {
           setMarketData(data);
         } else {
@@ -80,26 +93,48 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, inp
 
   return (
     <div className="space-y-8 relative">
+      {/* AI Insight Section */}
+      <div className={blurClass}>
+        <AiSummaryCard insight={aiInsight} />
+      </div>
+
       {/* Locked Overlay */}
       {isLocked && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center z-10">
-          <div className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-2xl text-center max-w-sm border border-slate-200">
-            <Lock className="h-12 w-12 text-emerald-600 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">Unlock Full Analysis</h3>
-            <p className="text-slate-600 mb-6">
-              Get the detailed breakdown, 3-year cash flow projections, and exportable PDF report.
-            </p>
-            <button
-              onClick={onUnlock}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg shadow-emerald-600/30 transition transform hover:-translate-y-1"
-            >
-              Unlock Now (KES {PAYMENT_AMOUNT_KES})
-            </button>
+        <div className="absolute inset-0 z-50 flex items-start justify-center pt-0">
+          <div className="-mt-20 sticky top-32 mx-4 w-full max-w-md">
+            <PaymentCard
+              onSuccess={() => onPaidSuccess?.()}
+              showCloseButton={false}
+              className="shadow-2xl border border-slate-200/50"
+            />
           </div>
         </div>
       )}
 
-      {/* KPI Cards */}
+      {/* Top Action Bar */}
+      <div className={`flex justify-end gap-3 mb-4 ${blurClass}`}>
+        <button
+          disabled={isLocked}
+          className={`flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all text-sm font-medium ${isLocked ? 'text-slate-400 cursor-not-allowed opacity-50' : 'text-slate-700 hover:text-emerald-700 hover:border-emerald-300'
+            }`}
+        >
+          <Share2 size={18} />
+          <span>Share Report</span>
+        </button>
+        <button
+          disabled={isLocked}
+          onClick={() => {
+            if (isLocked) return;
+            generatePDF(results, inputs);
+          }}
+          className={`flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all transform hover:-translate-y-0.5 text-sm font-bold ${isLocked ? 'cursor-not-allowed opacity-50 bg-slate-400 shadow-none' : ''
+            }`}
+        >
+          {isLocked ? <Lock size={18} /> : <Download size={18} />}
+          <span>Export PDF</span>
+        </button>
+      </div>
+
       {/* KPI Cards */}
       <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ${blurClass}`}>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
@@ -148,7 +183,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, inp
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
             <div className="flex items-center gap-2 text-slate-500 mb-2">
               <Info size={18} />
-              <span className="text-sm font-medium">Market Average</span>
+              <span className="text-sm font-medium">Avg {inputs.acquisitionModel === AcquisitionModel.BUY ? 'Buy' : 'Rent'} Market Price</span>
               <InfoTooltip text={`Startlingly live data! This is the current average ${inputs.acquisitionModel === AcquisitionModel.BUY ? 'listing price' : 'rental rate'} for ${inputs.propertyType} units in ${regionName}.`} />
             </div>
 
@@ -158,7 +193,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, inp
 
             <div className="flex flex-col mt-1">
               <span className="text-xs text-slate-400">
-                Avg {inputs.acquisitionModel === AcquisitionModel.BUY ? 'Price' : 'Rent'} in {regionName}
+                Avg {inputs.propertyType} {inputs.acquisitionModel === AcquisitionModel.BUY ? 'Price' : 'Rent'} in {regionName}
               </span>
               {/* Only show comparison if user actually entered a different number manually */}
               {hasCustomInput && Math.abs(diffPercent) > 0.1 && (
@@ -177,7 +212,6 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, inp
         )}
       </div>
 
-      {/* Assumptions Section */}
       {/* Assumptions Section */}
       <div className={`bg-blue-50/50 rounded-xl p-6 border border-blue-100 ${blurClass}`}>
         <div className="flex items-center gap-2 mb-4">
@@ -199,6 +233,11 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, inp
                 </span>
                 <span className="text-[10px] font-medium text-indigo-700">Live IQ</span>
               </div>
+            </div>
+
+            <div className="mb-2">
+              <span className="text-xs font-semibold text-indigo-900 block">{inputs.propertyType}</span>
+              <span className="text-[10px] text-indigo-500 uppercase tracking-wide font-medium">{regionName}</span>
             </div>
 
             <div className="flex items-baseline gap-1">
@@ -229,7 +268,6 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, inp
         </div>
       </div>
 
-      {/* Charts Section */}
       {/* Charts Section */}
       <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 ${blurClass}`}>
         {/* Cash Flow Projection */}
@@ -309,7 +347,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, inp
                   nameKey="label"
                 >
                   {results.expenseBreakdown.map((entry, index) => (
-                    <Cell key={`cell - ${index} `} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(val: number) => formatMoney(val)} />
@@ -346,15 +384,17 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, inp
             </div>
             <div className="flex justify-between items-center py-2 border-b border-slate-50">
               <span className="text-slate-600">
-                Security Deposit (2 Months)
-                <InfoTooltip text="Standard Kenyan lease requirement. Refundable at end of lease." />
+                {inputs.acquisitionModel === AcquisitionModel.BUY ? 'Downpayment' : 'Security Deposit (2 Months)'}
+                <InfoTooltip text={inputs.acquisitionModel === AcquisitionModel.BUY ? "Initial cash downpayment required for purchase." : "Standard Kenyan lease requirement. Refundable at end of lease."} />
               </span>
               <span className="font-semibold">{formatMoney(results.startupCosts.depositRounded)}</span>
             </div>
-            <div className="flex justify-between items-center py-2 border-b border-slate-50">
-              <span className="text-slate-600">First Month Rent (Advance)</span>
-              <span className="font-semibold">{formatMoney(results.startupCosts.firstMonthRent)}</span>
-            </div>
+            {results.startupCosts.firstMonthRent > 0 && (
+              <div className="flex justify-between items-center py-2 border-b border-slate-50">
+                <span className="text-slate-600">First Month Rent (Advance)</span>
+                <span className="font-semibold">{formatMoney(results.startupCosts.firstMonthRent)}</span>
+              </div>
+            )}
             <div className="flex justify-between items-center py-2 border-b border-slate-50">
               <span className="text-slate-600">
                 Fixtures & Fittings
@@ -396,16 +436,25 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, inp
               <div className="text-xs text-emerald-500 mt-1">Based on {occupancyRate * 100}% Occupancy</div>
             </div>
             <div className="bg-red-50 p-4 rounded-lg text-center">
-              <span className="text-xs text-red-600 font-semibold uppercase tracking-wider">Total Expenses</span>
-              <div className="text-xl font-bold text-red-700">{formatMoney(results.monthlyOpex.rent + results.monthlyOpex.cleaning + results.monthlyOpex.internet + results.monthlyOpex.electricity + results.monthlyOpex.water + results.monthlyOpex.dstv + results.monthlyOpex.management + results.monthlyOpex.platform + results.monthlyOpex.maintenance)}</div>
+              <span className="text-xs text-red-600 font-semibold uppercase tracking-wider">Total Cash Outflow</span>
+              <div className="text-xl font-bold text-red-700">{formatMoney(results.monthlyOpex.rent + results.monthlyOpex.mortgage + results.monthlyOpex.cleaning + results.monthlyOpex.internet + results.monthlyOpex.electricity + results.monthlyOpex.water + results.monthlyOpex.netflix + results.monthlyOpex.management + results.monthlyOpex.platform + results.monthlyOpex.maintenance)}</div>
             </div>
           </div>
 
           <div className="space-y-3 flex-grow">
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Rent Payment</span>
-              <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.rent)}</span>
-            </div>
+            {/* Conditional Rent vs Mortgage */}
+            {results.monthlyOpex.rent > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Rent Payment</span>
+                <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.rent)}</span>
+              </div>
+            )}
+            {results.monthlyOpex.mortgage > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Mortgage Payment</span>
+                <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.mortgage)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-sm">
               <span className="text-slate-500">Cleaning ({Math.round(occupancyRate * 30.5)} days)</span>
               <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.cleaning)}</span>
@@ -429,10 +478,10 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, inp
               </span>
               <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.internet)}</span>
             </div>
-            {results.monthlyOpex.dstv > 0 && (
+            {results.monthlyOpex.netflix > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">DStv / Entertainment</span>
-                <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.dstv)}</span>
+                <span className="text-slate-500">Netflix / Entertainment</span>
+                <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.netflix)}</span>
               </div>
             )}
             <div className="border-t border-slate-100 my-1"></div>
@@ -463,27 +512,6 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({ results, inp
       <div className={`bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden ${blurClass}`}>
         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <h3 className="font-semibold text-slate-800">Financial Summary</h3>
-          <div className="flex gap-3">
-            <button
-              disabled={isLocked}
-              className={`flex items-center gap-2 transition ${isLocked ? 'text-slate-400 cursor-not-allowed' : 'text-slate-600 hover:text-emerald-600'
-                }`}
-            >
-              <Share2 size={16} /> Share
-            </button>
-            <button
-              disabled={isLocked}
-              onClick={() => {
-                if (isLocked) return;
-                generatePDF(results, inputs);
-              }}
-              className={`flex items-center gap-2 font-medium transition ${isLocked ? 'text-slate-400 cursor-not-allowed' : 'text-emerald-600 hover:text-emerald-700'
-                }`}
-            >
-              {isLocked ? <Lock size={16} /> : <Download size={16} />}
-              Export PDF
-            </button>
-          </div>
         </div>
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
           <div className="flex justify-between border-b border-slate-100 pb-2">

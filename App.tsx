@@ -14,6 +14,7 @@ import {
 import { CalculatorStepper } from './components/CalculatorStepper';
 import { ResultsDashboard } from './components/ResultsDashboard';
 import { PaymentModal } from './components/PaymentModal';
+import { ReportFilters } from './components/ReportFilters';
 import { calculateROI } from './services/calculatorService';
 import { fetchMarketData } from './services/marketService';
 import {
@@ -114,7 +115,8 @@ const LandingPage: React.FC = () => {
 // --- Calculator Page Component ---
 interface CalculatorPageProps {
   isPaid: boolean;
-  onPaid: () => void;
+  onPaidSuccess: () => void;
+  onOpenPayment: () => void;
   inputs: UserInputs;
   setInputs: React.Dispatch<React.SetStateAction<UserInputs>>;
   setResults: React.Dispatch<React.SetStateAction<CalculationResult | null>>;
@@ -122,24 +124,39 @@ interface CalculatorPageProps {
 
 const CalculatorPage: React.FC<CalculatorPageProps> = ({
   isPaid,
-  onPaid,
+  onPaidSuccess,
+  onOpenPayment,
   inputs,
   setInputs,
   setResults
 }) => {
-  const [showPayment, setShowPayment] = useState(false);
+  // Removed local showPayment state
+  const [isCalculated, setIsCalculated] = useState(false);
   const calculatorRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  const location = useLocation();
+
   useEffect(() => {
-    // Auto scroll to calculator on mount
-    calculatorRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Only auto-scroll if we haven't just calculated (prevents jumping on back nav)
+    if (!isCalculated) {
+      calculatorRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, []);
 
-  const handleCalculate = async () => {
+  // Check if we were redirected with intent to open payment
+  useEffect(() => {
+    if (location.state && (location.state as any).openPayment && !isPaid) {
+      onOpenPayment();
+      // Clean up state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, isPaid, onOpenPayment]);
+
+  const handleCalculate = async (forceProceed = false) => {
     // Paywall Gate: Require payment before generating report
-    if (!isPaid) {
-      setShowPayment(true);
+    if (!isPaid && !forceProceed) {
+      onOpenPayment();
       return;
     }
 
@@ -182,16 +199,6 @@ const CalculatorPage: React.FC<CalculatorPageProps> = ({
         />
       </div>
 
-      <PaymentModal
-        isOpen={showPayment}
-        onClose={() => {
-          setShowPayment(false);
-        }}
-        onSuccess={() => {
-          onPaid();
-          setShowPayment(false);
-        }}
-      />
     </div>
   );
 };
@@ -200,11 +207,14 @@ const CalculatorPage: React.FC<CalculatorPageProps> = ({
 interface ReportPageProps {
   results: CalculationResult | null;
   inputs: UserInputs;
+  setInputs: React.Dispatch<React.SetStateAction<UserInputs>>;
+  setResults: React.Dispatch<React.SetStateAction<CalculationResult | null>>;
   isPaid: boolean;
   onUnlock: () => void;
+  onPaidSuccess: () => void;
 }
 
-const ReportPage: React.FC<ReportPageProps> = ({ results, inputs, isPaid, onUnlock }) => {
+const ReportPage: React.FC<ReportPageProps> = ({ results, inputs, setInputs, setResults, isPaid, onUnlock, onPaidSuccess }) => {
   const navigate = useNavigate();
 
   // Redirect if no results (e.g. direct valid access)
@@ -214,29 +224,42 @@ const ReportPage: React.FC<ReportPageProps> = ({ results, inputs, isPaid, onUnlo
     }
   }, [results, navigate]);
 
+  const handleFilterChange = (key: keyof UserInputs, value: any) => {
+    const newInputs = { ...inputs, [key]: value };
+    setInputs(newInputs);
+
+    // Recalculate immediately with new inputs
+    // Note: This uses default market data if not re-fetched.
+    // For V1, we accept this. Ideally we'd re-fetch smart data here too.
+    const newResults = calculateROI(newInputs);
+    setResults(newResults);
+  };
+
+  const handleBulkUpdate = (newInputs: UserInputs) => {
+    setInputs(newInputs);
+    // Recalculate immediately
+    const newResults = calculateROI(newInputs);
+    setResults(newResults);
+  };
+
   if (!results) return null;
 
   return (
-    <div className="bg-slate-50 py-12 min-h-screen">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-in fade-in duration-500">
+    <div className="bg-slate-50 min-h-screen pb-12">
+      <ReportFilters
+        inputs={inputs}
+        onFilterChange={handleFilterChange}
+        onBulkUpdate={handleBulkUpdate}
+        disabled={!isPaid}
+      />
 
-        {/* Navigation / Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <button
-            onClick={() => navigate('/calculator')}
-            className="group flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 hover:border-emerald-500 rounded-full shadow-sm hover:shadow-md transition-all duration-300 text-slate-600 hover:text-emerald-700 font-medium text-sm self-start"
-          >
-            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            Edit Strategy
-          </button>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-in fade-in duration-500 mt-8">
 
+        {/* Header */}
+        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${!isPaid ? 'opacity-50 blur-[2px] select-none pointer-events-none' : ''}`}>
           <h2 className="text-3xl font-bold text-slate-900">Analysis Report</h2>
 
-          {!isPaid && (
-            <span className="text-sm bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-medium">
-              Preview Mode
-            </span>
-          )}
+
         </div>
 
         <ResultsDashboard
@@ -244,6 +267,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ results, inputs, isPaid, onUnlo
           inputs={inputs}
           isLocked={!isPaid}
           onUnlock={onUnlock}
+          onPaidSuccess={onPaidSuccess}
         />
       </div>
     </div>
@@ -252,7 +276,10 @@ const ReportPage: React.FC<ReportPageProps> = ({ results, inputs, isPaid, onUnlo
 
 // --- Main App Component ---
 const App: React.FC = () => {
-  const [isPaid, setIsPaid] = useState(false);
+  const [isPaid, setIsPaid] = useState<boolean>(() => {
+    return localStorage.getItem('roiCalculatorUnlocked') === 'true';
+  });
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -274,13 +301,14 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  const handlePaid = () => {
+  const handlePaidSuccess = () => {
     setIsPaid(true);
     localStorage.setItem('roiCalculatorUnlocked', 'true');
+    setShowPaymentModal(false);
   };
 
-  const handleUnlockRequest = () => {
-    navigate('/calculator');
+  const handleOpenPayment = () => {
+    setShowPaymentModal(true);
   };
 
   return (
@@ -322,7 +350,8 @@ const App: React.FC = () => {
             element={
               <CalculatorPage
                 isPaid={isPaid}
-                onPaid={handlePaid}
+                onPaidSuccess={handlePaidSuccess}
+                onOpenPayment={handleOpenPayment}
                 inputs={inputs}
                 setInputs={setInputs}
                 setResults={setResults}
@@ -335,13 +364,34 @@ const App: React.FC = () => {
               <ReportPage
                 results={results}
                 inputs={inputs}
+                setInputs={setInputs}
+                setResults={setResults}
                 isPaid={isPaid}
-                onUnlock={handleUnlockRequest}
+                onUnlock={handleOpenPayment}
+                onPaidSuccess={handlePaidSuccess}
               />
             }
           />
         </Routes>
       </main>
+
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={() => {
+          handlePaidSuccess();
+          // Logic to auto-proceed if we were trying to calculate?
+          // For now, if on Calculator page, user can click "Generate" again.
+          // Or we can assume if they paid, they want to see results. 
+          // But since handleCalculate logic is inside CalculatorPage...
+          // We can perhaps just close modal and let user click. 
+          // OR: We can trigger a re-render/logic. 
+          // Actually, passing `handlePaidSuccess` which closes modal is enough.
+          // The previous logic had `handleCalculate(true)` in `onSuccess`.
+          // To preserve that: `CalculatorPage` might need to listen to `isPaid` change?
+          // Or we can rely on user clicking safely.
+        }}
+      />
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-12">

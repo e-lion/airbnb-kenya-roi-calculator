@@ -231,7 +231,7 @@ app.get('/api/mpesa/status/:checkoutRequestId', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5000;
 
 // Scraper Endpoint
 import { scrapeBuyRentKenya } from './services/scraperService.js';

@@ -125,7 +125,17 @@ export const generatePDF = (results: CalculationResult, inputs: UserInputs) => {
         body: expenseData,
         theme: 'striped',
         headStyles: { fillColor: [185, 28, 28] }, // Red 700
-        foot: [['TOTAL MONTHLY', formatMoney(results.monthlyOpex.rent + results.monthlyOpex.cleaning + results.monthlyOpex.internet + results.monthlyOpex.electricity + results.monthlyOpex.management + results.monthlyOpex.other)]],
+        foot: [['TOTAL MONTHLY', formatMoney(
+            (results.monthlyOpex.rent || 0) +
+            (results.monthlyOpex.cleaning || 0) +
+            (results.monthlyOpex.internet || 0) +
+            (results.monthlyOpex.electricity || 0) +
+            (results.monthlyOpex.water || 0) +
+            (results.monthlyOpex.netflix || 0) +
+            (results.monthlyOpex.management || 0) +
+            (results.monthlyOpex.platform || 0) +
+            (results.monthlyOpex.maintenance || 0)
+        )]],
     });
 
     // --- DISCLAIMER ---

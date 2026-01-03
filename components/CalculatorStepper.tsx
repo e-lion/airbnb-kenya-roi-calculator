@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   Lock
 } from 'lucide-react';
+import { AssumptionsForm } from './forms/AssumptionsForm';
 
 interface CalculatorStepperProps {
   inputs: UserInputs;
@@ -304,142 +305,13 @@ export const CalculatorStepper: React.FC<CalculatorStepperProps> = ({ inputs, se
       </div>
 
       <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden relative">
-        <div className="p-6 space-y-8">
-          {/* Occupancy Rate Slider */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-end">
-              <label className="text-sm font-bold text-slate-700">Projected Occupancy</label>
-              <span className="text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded text-sm">
-                {inputs.customOccupancy !== undefined ? (inputs.customOccupancy * 100).toFixed(0) : marketOccupancy.toFixed(0)}%
-              </span>
-            </div>
-            <input
-              type="range"
-              min="30"
-              max="100"
-              step="5"
-              value={inputs.customOccupancy !== undefined ? inputs.customOccupancy * 100 : marketOccupancy}
-              onChange={(e) => handleChange('customOccupancy', Number(e.target.value) / 100)}
-              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-            />
-            <div className="flex justify-between text-xs text-slate-400 font-medium">
-              <span>Low (30%)</span>
-              <span>Avg ({marketOccupancy.toFixed(0)}%)</span>
-              <span>High (100%)</span>
-            </div>
-          </div>
-
-          {/* Nightly Rate */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-end">
-              <label className="text-sm font-bold text-slate-700">Nightly Rate (KES)</label>
-              <span className="text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded text-sm">
-                KES {(inputs.customNightlyRate || marketRate).toLocaleString()}
-              </span>
-            </div>
-            <input
-              type="range"
-              min="2000"
-              max="20000"
-              step="500"
-              value={inputs.customNightlyRate || marketRate}
-              onChange={(e) => handleChange('customNightlyRate', Number(e.target.value))}
-              className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-            />
-          </div>
-
-          {/* Monthly Operating Costs Group */}
-          <div className="pt-4 border-t border-slate-200">
-            <label className="text-sm font-bold text-slate-700 mb-4 block">Monthly Operating Costs</label>
-            <div className="grid grid-cols-1 gap-6">
-
-              {/* Cleaning (Daily Rate) */}
-              <div className="space-y-3">
-                <div className="flex justify-between text-xs font-medium text-slate-500">
-                  <span>Cleaning (Daily Rate)</span>
-                  <span>KES {inputs.customCleaningCost || 500}</span>
-                </div>
-                <input
-                  type="range"
-                  min="200"
-                  max="2000"
-                  step="50"
-                  value={inputs.customCleaningCost !== undefined ? inputs.customCleaningCost : 500}
-                  onChange={(e) => handleChange('customCleaningCost', Number(e.target.value))}
-                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                />
-              </div>
-
-              {/* WiFi */}
-              <div className="space-y-3">
-                <div className="flex justify-between text-xs font-medium text-slate-500">
-                  <span>WiFi / Internet</span>
-                  <span>KES {inputs.customWifiCost || 3000}</span>
-                </div>
-                <input
-                  type="range"
-                  min="2000"
-                  max="6000"
-                  step="500"
-                  value={inputs.customWifiCost !== undefined ? inputs.customWifiCost : 3000}
-                  onChange={(e) => handleChange('customWifiCost', Number(e.target.value))}
-                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                />
-              </div>
-
-              {/* Electricity */}
-              <div className="space-y-3">
-                <div className="flex justify-between text-xs font-medium text-slate-500">
-                  <span>Electricity (Tokens)</span>
-                  <span>KES {inputs.customElectricityCost || (inputs.propertyType === 'Studio' ? 2500 : 5000)}</span>
-                </div>
-                <input
-                  type="range"
-                  min="1000"
-                  max="10000"
-                  step="500"
-                  value={inputs.customElectricityCost !== undefined ? inputs.customElectricityCost : (inputs.propertyType === 'Studio' ? 2500 : 5000)}
-                  onChange={(e) => handleChange('customElectricityCost', Number(e.target.value))}
-                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                />
-              </div>
-
-              {/* Water */}
-              <div className="space-y-3">
-                <div className="flex justify-between text-xs font-medium text-slate-500">
-                  <span>Water Bill</span>
-                  <span>KES {inputs.customWaterCost || 1000}</span>
-                </div>
-                <input
-                  type="range"
-                  min="100"
-                  max="5000"
-                  step="100"
-                  value={inputs.customWaterCost !== undefined ? inputs.customWaterCost : 1000}
-                  onChange={(e) => handleChange('customWaterCost', Number(e.target.value))}
-                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                />
-              </div>
-
-              {/* DStv / Entertainment */}
-              <div className="space-y-3">
-                <div className="flex justify-between text-xs font-medium text-slate-500">
-                  <span>DStv / Entertainment</span>
-                  <span>KES {inputs.customDstvCost || 0}</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="10000"
-                  step="500"
-                  value={inputs.customDstvCost !== undefined ? inputs.customDstvCost : 0}
-                  onChange={(e) => handleChange('customDstvCost', Number(e.target.value))}
-                  className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                />
-              </div>
-
-            </div>
-          </div>
+        <div className="p-6">
+          <AssumptionsForm
+            inputs={inputs}
+            handleChange={handleChange}
+            marketOccupancy={marketOccupancy}
+            marketRate={marketRate}
+          />
         </div>
       </div>
 
@@ -481,6 +353,44 @@ export const CalculatorStepper: React.FC<CalculatorStepperProps> = ({ inputs, se
             style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
           />
         </div>
+
+        {/* Previous Steps Summary */}
+        {currentStep > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+            {STEPS.slice(0, currentStep).map((step, index) => {
+              let label = '';
+              switch (step.id) {
+                case 'region':
+                  label = KENYA_REGIONS.find(r => r.id === inputs.regionId)?.name || 'Region';
+                  break;
+                case 'property':
+                  label = inputs.propertyType;
+                  break;
+                case 'strategy':
+                  label = inputs.acquisitionModel === AcquisitionModel.BUY ? 'Buy' : 'Rent-to-Rent';
+                  break;
+                case 'finish': // Interiors
+                  label = inputs.furnishingStandard;
+                  break;
+                default:
+                  return null;
+              }
+
+              return (
+                <button
+                  key={step.id}
+                  onClick={() => setCurrentStep(index)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-full text-xs font-medium text-emerald-700 hover:bg-emerald-100 hover:border-emerald-200 transition-colors group"
+                >
+                  <CheckCircle2 size={12} className="text-emerald-500" />
+                  <span className="opacity-90 group-hover:opacity-100">{label}</span>
+                  <div className="w-px h-3 bg-emerald-200 mx-1" />
+                  <span className="text-emerald-400 group-hover:text-emerald-600">Edit</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Step Content */}

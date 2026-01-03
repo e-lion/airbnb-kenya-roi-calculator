@@ -48,7 +48,8 @@ export const calculateROI = (inputs: UserInputs): CalculationResult => {
   const utilityDeposits = STARTUP_COSTS.UTILITY_DEPOSIT;
   const fixtures = STARTUP_COSTS.FIXTURES_AND_FITTINGS;
 
-  let monthlyFixedCost = 0; // Mortgage or Rent
+  let monthlyRent = 0;
+  let monthlyMortgage = 0;
 
   if (inputs.acquisitionModel === AcquisitionModel.BUY) {
     const buyPrice = inputs.customPropertyPrice || region.avgBuyPrice[inputs.propertyType];
@@ -65,20 +66,20 @@ export const calculateROI = (inputs: UserInputs): CalculationResult => {
     const monthlyRate = annualRate / 12;
 
     if (principal > 0) {
-      monthlyFixedCost = principal * (monthlyRate * Math.pow(1 + monthlyRate, termsMonths)) / (Math.pow(1 + monthlyRate, termsMonths) - 1);
+      monthlyMortgage = principal * (monthlyRate * Math.pow(1 + monthlyRate, termsMonths)) / (Math.pow(1 + monthlyRate, termsMonths) - 1);
     }
   } else {
     // RENTAL ARBITRAGE
-    const monthlyRent = inputs.customMonthlyRent || region.avgRent[inputs.propertyType];
+    const monthlyRentValue = inputs.customMonthlyRent || region.avgRent[inputs.propertyType];
+    monthlyRent = monthlyRentValue;
 
     // 2 Months Deposit
-    depositRounded = monthlyRent * STARTUP_COSTS.DEPOSIT_MONTHS;
+    depositRounded = monthlyRentValue * STARTUP_COSTS.DEPOSIT_MONTHS;
     // 1 Month Advance Rent
-    firstMonthRent = monthlyRent * STARTUP_COSTS.ADVANCE_RENT_MONTHS;
+    firstMonthRent = monthlyRentValue * STARTUP_COSTS.ADVANCE_RENT_MONTHS;
 
     acquisitionCost = depositRounded + firstMonthRent;
     legalAdmin = STARTUP_COSTS.LEGAL_ADMIN_FEE;
-    monthlyFixedCost = monthlyRent;
   }
 
   const totalInitialInvestment = acquisitionCost + furnishingCost + legalAdmin + utilityDeposits + fixtures;
@@ -115,11 +116,11 @@ export const calculateROI = (inputs: UserInputs): CalculationResult => {
     ? inputs.customWaterCost
     : OPERATING_CONSTANTS.WATER_MONTHLY[inputs.propertyType];
 
-  const monthlyDstv = inputs.customDstvCost !== undefined
-    ? inputs.customDstvCost
+  const monthlyNetflix = inputs.customNetflixCost !== undefined
+    ? inputs.customNetflixCost
     : 0; // Optional by default
 
-  const monthlyUtilitesTotal = monthlyInternet + monthlyElectricity + monthlyWater + monthlyDstv;
+  const monthlyUtilitesTotal = monthlyInternet + monthlyElectricity + monthlyWater + monthlyNetflix;
 
   // Management (of Gross Revenue)
   const mgmtRate = inputs.managementFeePercent !== undefined
@@ -135,61 +136,107 @@ export const calculateROI = (inputs: UserInputs): CalculationResult => {
   const monthlyMaintenance = monthlyRevenue * OPERATING_COSTS.MAINTENANCE_RESERVE_PCT;
 
   // Expenses Object
-  const totalMonthlyFixed = monthlyFixedCost + monthlyCleaning + monthlyUtilitesTotal + monthlyManagement + monthlyPlatformFees + monthlyMaintenance;
-  const annualOperatingExpenses = totalMonthlyFixed * 12;
+  // Note: For BUY logic, Mortgage is Debt Service, NOT Opex.
+  // For RENT logic, Rent IS Opex.
+  const totalMonthlyOpex = monthlyRent + monthlyCleaning + monthlyUtilitesTotal + monthlyManagement + monthlyPlatformFees + monthlyMaintenance;
+  const annualOperatingExpenses = totalMonthlyOpex * 12;
 
   // ----------------------------------------------------
   // 4. METRICS / ROI
   // ----------------------------------------------------
   const netOperatingIncome = annualGrossRevenue - annualOperatingExpenses;
-  const monthlyCashFlow = netOperatingIncome / 12;
 
-  const cashOnCashReturn = totalInitialInvestment > 0 ? (netOperatingIncome / totalInitialInvestment) * 100 : 0;
+  // Cash Flow = NOI - Debt Service
+  const monthlyCashFlow = (netOperatingIncome / 12) - monthlyMortgage;
+
+  const cashOnCashReturn = totalInitialInvestment > 0 ? ((monthlyCashFlow * 12) / totalInitialInvestment) * 100 : 0;
 
   const paybackPeriodMonths = monthlyCashFlow > 0 ? (totalInitialInvestment / monthlyCashFlow) : 0;
 
   // Cap Rate (Buy only)
   let capRate = 0;
   if (inputs.acquisitionModel === AcquisitionModel.BUY) {
-    // NOI for Cap Rate usually excludes financing costs (mortgage), but includes all opex
-    // Here we calculated NOI *after* Mortgage. Let's adjust for standard Cap Rate def (Pre-debt).
-    const annualDebtService = monthlyFixedCost * 12;
-    const noiPreDebt = netOperatingIncome + annualDebtService;
-    capRate = (noiPreDebt / region.avgBuyPrice[inputs.propertyType]) * 100;
+    // Cap Rate = NOI / Property Value
+    capRate = (netOperatingIncome / region.avgBuyPrice[inputs.propertyType]) * 100;
   }
 
   // ----------------------------------------------------
   // 5. BREAKDOWNS
   // ----------------------------------------------------
-  // Determine projection length based on payback period
-  const minMonths = 36; // Minimum 3 years
-  const maxMonths = 180; // Maximum 15 years
+  // ----------------------------------------------------
+  // 5. BREAKDOWNS (SIMULATION)
+  // ----------------------------------------------------
+  const minMonths = 36; // Min 3 Years
+  const maxMonths = 360; // Max 30 Years (to capture long mortgage payoff)
 
-  let projectionMonths = minMonths;
-  if (paybackPeriodMonths > 24) {
-    // If payback is long, show the payback point + 1 extra year for context
-    projectionMonths = Math.ceil((paybackPeriodMonths + 12) / 12) * 12;
+  let currentCumulative = -totalInitialInvestment;
+  let computedPaybackMonths = 0;
+  let foundPayback = false;
+
+  // Terms for loop
+  const mortgageTermMonths = (inputs.loanTermYears || 15) * 12;
+
+  // We simply simulate up to maxMonths to find payback and show the curve
+  const monthlyBreakdown: { month: number; cumulative: number }[] = [];
+
+  for (let i = 1; i <= maxMonths; i++) {
+    // Current Period Analysis
+    const hasMortgage = inputs.acquisitionModel === AcquisitionModel.BUY && i <= mortgageTermMonths;
+    // If mortgage is done, cashflow increases by the monthlyMortgage amount (since it's no longer paid)
+    // Current logic: monthlyCashFlow = (NOI/12) - monthlyMortgage
+    // If mortgage is gone: newCashFlow = (NOI/12) - 0
+    let periodCashFlow = monthlyCashFlow;
+
+    // ADJUSTMENT: The base `monthlyCashFlow` variable calculated above includes the mortgage deduction.
+    // If the mortgage is finished (i > mortgageTermMonths), we ADD it back to cash flow.
+    if (inputs.acquisitionModel === AcquisitionModel.BUY && i > mortgageTermMonths) {
+      periodCashFlow += monthlyMortgage;
+    }
+
+    currentCumulative += periodCashFlow;
+
+    // Record Payback
+    if (!foundPayback && currentCumulative >= 0) {
+      computedPaybackMonths = i;
+      foundPayback = true;
+    }
+
+    // Optimization: Don't store 360 points for the chart if not needed? 
+    // Actually, Recharts handles 360 points fine. Let's just store all for accuracy.
+    monthlyBreakdown.push({
+      month: i,
+      cumulative: currentCumulative
+    });
   }
-  // Clamp between min and max
-  projectionMonths = Math.min(Math.max(projectionMonths, minMonths), maxMonths);
 
-  const monthlyBreakdown = Array.from({ length: projectionMonths }).map((_, i) => {
-    const month = i + 1;
-    return {
-      month,
-      cumulative: -totalInitialInvestment + (monthlyCashFlow * month),
-    };
-  });
+  // Determine how much of the breakdown to actually return/display
+  // If payback is short (e.g. 18 months), showing 360 months is overkill and flattens the chart.
+  // We want to show: Max(Payback + 2 Years, MortgageTerm + 2 Years, 5 Years)
+  // But capped at maxMonths.
+  let displayMonths = 60; // Default 5 years
+  if (foundPayback) {
+    displayMonths = Math.max(displayMonths, computedPaybackMonths + 24);
+  }
+  if (inputs.acquisitionModel === AcquisitionModel.BUY) {
+    displayMonths = Math.max(displayMonths, mortgageTermMonths + 24);
+  }
+  displayMonths = Math.min(displayMonths, maxMonths);
+
+  // Slice the breakdown for the chart
+  const chartData = monthlyBreakdown.slice(0, displayMonths);
+
+  const finalPaybackPeriod = foundPayback ? computedPaybackMonths : 0; // 0 implies "Never" or ">30y" in UI logic
 
   const expenseBreakdown = [
-    { label: inputs.acquisitionModel === AcquisitionModel.BUY ? 'Mortgage' : 'Rent', amount: monthlyFixedCost * 12 },
+    { label: 'Rent', amount: monthlyRent * 12 },
+    { label: 'Mortgage (Debt)', amount: monthlyMortgage * 12 },
     { label: 'Cleaning', amount: monthlyCleaning * 12 },
     { label: 'Management', amount: monthlyManagement * 12 },
     { label: 'Platform Fees', amount: monthlyPlatformFees * 12 },
     { label: 'Electricity', amount: monthlyElectricity * 12 },
     { label: 'Water', amount: monthlyWater * 12 },
     { label: 'Internet / WiFi', amount: monthlyInternet * 12 },
-    { label: 'DStv / Canal+', amount: monthlyDstv * 12 },
+    { label: 'Netflix / Ent', amount: monthlyNetflix * 12 },
     { label: 'Maintenance', amount: monthlyMaintenance * 12 },
   ].filter(i => i.amount > 0);
 
@@ -198,14 +245,14 @@ export const calculateROI = (inputs: UserInputs): CalculationResult => {
     furnishingCost,
     monthlyRevenue,
     annualRevenue: annualGrossRevenue,
-    monthlyFixedCost,
+    monthlyFixedCost: monthlyRent + monthlyMortgage, // Kept for legacy compatibility if needed, but splits are better
     monthlyCashFlow,
     annualExpenses: annualOperatingExpenses,
     netOperatingIncome,
     capRate: inputs.acquisitionModel === AcquisitionModel.BUY ? capRate : undefined,
     cashOnCashReturn,
-    paybackPeriodMonths,
-    monthlyBreakdown,
+    paybackPeriodMonths: finalPaybackPeriod,
+    monthlyBreakdown: chartData,
     expenseBreakdown,
 
     // New Granular Data
@@ -219,12 +266,13 @@ export const calculateROI = (inputs: UserInputs): CalculationResult => {
       total: totalInitialInvestment
     },
     monthlyOpex: {
-      rent: monthlyFixedCost,
+      rent: monthlyRent,
+      mortgage: monthlyMortgage,
       cleaning: monthlyCleaning,
       internet: monthlyInternet,
       electricity: monthlyElectricity,
       water: monthlyWater,
-      dstv: monthlyDstv,
+      netflix: monthlyNetflix,
       management: monthlyManagement,
       platform: monthlyPlatformFees,
       maintenance: monthlyMaintenance
