@@ -20,7 +20,7 @@
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.555.0",
-    "posthog-js": "^1.310.1",
+    "posthog-js": "^1.313.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-is": "^19.2.3",

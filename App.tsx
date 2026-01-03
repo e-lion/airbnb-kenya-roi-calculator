@@ -347,30 +347,26 @@ const App: React.FC = () => {
           <Route path="/" element={<LandingPage />} />
           <Route
             path="/calculator"
-            element={
-              <CalculatorPage
-                isPaid={isPaid}
-                onPaidSuccess={handlePaidSuccess}
-                onOpenPayment={handleOpenPayment}
-                inputs={inputs}
-                setInputs={setInputs}
-                setResults={setResults}
-              />
-            }
+            element={<CalculatorPage
+              isPaid={isPaid}
+              onPaidSuccess={handlePaidSuccess}
+              onOpenPayment={handleOpenPayment}
+              inputs={inputs}
+              setInputs={setInputs}
+              setResults={setResults}
+            />}
           />
           <Route
             path="/report"
-            element={
-              <ReportPage
-                results={results}
-                inputs={inputs}
-                setInputs={setInputs}
-                setResults={setResults}
-                isPaid={isPaid}
-                onUnlock={handleOpenPayment}
-                onPaidSuccess={handlePaidSuccess}
-              />
-            }
+            element={<ReportPage
+              results={results}
+              inputs={inputs}
+              setInputs={setInputs}
+              setResults={setResults}
+              isPaid={isPaid}
+              onUnlock={handleOpenPayment}
+              onPaidSuccess={handlePaidSuccess}
+            />}
           />
         </Routes>
       </main>
