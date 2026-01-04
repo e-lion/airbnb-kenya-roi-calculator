@@ -74,6 +74,7 @@ export const generatePDF = (results: CalculationResult, inputs: UserInputs) => {
         ['Cash on Cash Return', `${results.cashOnCashReturn.toFixed(1)}%`],
         ['Payback Period', `${(results.paybackPeriodMonths / 12).toFixed(1)} Years`],
         ['Projected Annual Revenue', formatMoney(results.annualRevenue)],
+        ['Monthly Total Expenses', formatMoney(results.annualExpenses / 12)],
         ['Net Operating Income (NOI)', formatMoney(results.netOperatingIncome)],
     ];
 

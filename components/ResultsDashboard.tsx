@@ -45,6 +45,14 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
 }) => {
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Scroll to top when unlocked (e.g. after payment)
+  useEffect(() => {
+    if (!isLocked) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [isLocked]);
+
   const regionName = KENYA_REGIONS.find(r => r.id === inputs.regionId)?.name || inputs.regionId;
   const regionData = KENYA_REGIONS.find(r => r.id === inputs.regionId);
 
@@ -277,7 +285,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           </div>
           <div>
             <span className="block text-slate-500 text-xs uppercase tracking-wide font-semibold mb-1">Expenses</span>
-            <div className="font-medium text-slate-800">Includes Management, Utilities, & Maintenance</div>
+            <div className="font-medium text-slate-800">Includes Utilities</div>
             <p className="text-slate-400 text-xs mt-1">Comprehensive operating cost model</p>
           </div>
           <div>
@@ -486,7 +494,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             </div>
             <div>
               <h3 className="text-lg font-bold text-slate-800">Monthly Profit & Loss</h3>
-              <p className="text-xs text-slate-500">Income vs. The Grind (Expenses)</p>
+              <p className="text-xs text-slate-500">Income vs. Expense</p>
             </div>
           </div>
 
@@ -506,31 +514,47 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             {/* Conditional Rent vs Mortgage */}
             {results.monthlyOpex.rent > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Rent Payment</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-slate-500">Rent Payment</span>
+                  <InfoTooltip text="Monthly rent payable to the landlord." />
+                </div>
                 <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.rent)}</span>
               </div>
             )}
             {results.monthlyOpex.mortgage > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Mortgage Payment</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-slate-500">Mortgage Payment</span>
+                  <InfoTooltip text="Monthly loan repayment (principal + interest)." />
+                </div>
                 <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.mortgage)}</span>
               </div>
             )}
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Cleaning ({Math.round(occupancyRate * 30.5)} days)</span>
+              <div className="flex items-center gap-1">
+                <span className="text-slate-500">Cleaning ({Math.round(occupancyRate * 30.5)} days)</span>
+                <InfoTooltip text="Cost of cleaning after every guest checkout." />
+              </div>
               <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.cleaning)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Electricity</span>
+              <div className="flex items-center gap-1">
+                <span className="text-slate-500">Electricity</span>
+                <InfoTooltip text="Estimated monthly power bill based on property size." />
+              </div>
               <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.electricity)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Water</span>
+              <div className="flex items-center gap-1">
+                <span className="text-slate-500">Water</span>
+                <InfoTooltip text="Estimated monthly water bill." />
+              </div>
               <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.water)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500 group relative cursor-help">
+              <span className="text-slate-500 group relative cursor-help flex items-center gap-1">
                 Internet / WiFi
+                <InfoTooltip text="Monthly internet subscription cost." />
                 {/* Mini tooltip for Providers */}
                 <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-slate-800 text-white p-2 rounded text-xs w-48 z-10 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
                   <strong>Available Providers:</strong><br />
@@ -541,23 +565,23 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             </div>
             {results.monthlyOpex.netflix > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Netflix / Entertainment</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-slate-500">Netflix / Entertainment</span>
+                  <InfoTooltip text="Subscriptions for guest entertainment." />
+                </div>
                 <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.netflix)}</span>
               </div>
             )}
             <div className="border-t border-slate-100 my-1"></div>
+
             <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Management</span>
-              <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.management)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Platform Fees</span>
+              <div className="flex items-center gap-1">
+                <span className="text-slate-500">Platform Fees</span>
+                <InfoTooltip text="Service fees charged by platforms like Airbnb (approx. 3%)." />
+              </div>
               <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.platform)}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-500">Maintenance Reserve</span>
-              <span className="text-slate-700 font-medium">{formatMoney(results.monthlyOpex.maintenance)}</span>
-            </div>
+
           </div>
 
           <div className="border-t border-slate-100 mt-4 pt-3 flex justify-between items-center">
@@ -582,12 +606,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
             </div>
             <span className="font-semibold">{formatMoney(results.initialInvestment)}</span>
           </div>
-          <div className="flex justify-between border-b border-slate-100 pb-2">
-            <div className="flex items-center">
-              <span className="text-slate-600">Furnishing Cost</span>
-            </div>
-            <span className="font-semibold">{formatMoney(results.furnishingCost)}</span>
-          </div>
+
           <div className="flex justify-between border-b border-slate-100 pb-2">
             <span className="text-slate-600">Proj. Annual Revenue</span>
             <span className="font-semibold text-emerald-600">{formatMoney(results.annualRevenue)}</span>

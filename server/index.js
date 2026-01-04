@@ -282,14 +282,24 @@ app.post('/api/save-email', async (req, res) => {
   }
 
   try {
+    // Format phone number to match payment record
+    let formattedPhone = phoneNumber.replace(/\s/g, '');
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '254' + formattedPhone.slice(1);
+    } else if (formattedPhone.startsWith('+254')) {
+      formattedPhone = formattedPhone.slice(1);
+    } else if (!formattedPhone.startsWith('254')) {
+      formattedPhone = '254' + formattedPhone;
+    }
+
     const paymentsRef = db.collection('payments');
     // Find the successful transaction for this phone number
-    // Ideally we'd have a separate 'users' collection, but updating the payment record works for this scope.
-    // We'll update the most recent completed payment for this phone number.
     const snapshot = await paymentsRef
-      .where('phoneNumber', '==', phoneNumber) // Assumes phoneNumber format matches exactly what we stored
+      .where('phoneNumber', '==', formattedPhone)
       .where('status', '==', 'completed')
-      .orderBy('updatedAt', 'desc')
+      // Removed orderBy to avoid needing a composite index for now. 
+      // It's unlikely a user has many completed payments in short succession, 
+      // and attaching to any of them is acceptible.
       .limit(1)
       .get();
 

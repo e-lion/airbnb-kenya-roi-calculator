@@ -93,9 +93,9 @@ export const BASE_FURNISHING_COSTS = {
 };
 
 export const OPERATING_COSTS = {
-  MANAGEMENT_FEE_PCT: 0.15, // 15% Standard Agency
+  MANAGEMENT_FEE_PCT: 0, // 0% Self-Manage Assumed (was 0.15)
   PLATFORM_FEE_PCT: 0.03, // 3% Airbnb
-  MAINTENANCE_RESERVE_PCT: 0.05, // 5%
+  MAINTENANCE_RESERVE_PCT: 0, // 0% (was 0.05)
 };
 
 export const STARTUP_COSTS = {
