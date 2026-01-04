@@ -25,7 +25,7 @@ import {
   UserInputs,
   CalculationResult
 } from './types';
-import { KENYA_REGIONS } from './constants';
+import { KENYA_REGIONS, OPERATING_CONSTANTS, STARTUP_COSTS } from './constants';
 
 // --- Landing Page Component ---
 const LandingPage: React.FC = () => {
@@ -155,6 +155,82 @@ const CalculatorPage: React.FC<CalculatorPageProps> = ({
   }, [location.state, isPaid, onOpenPayment]);
 
   const handleCalculate = async (forceProceed = false) => {
+    // 0. Fire-and-forget: Save Raw Calculation Data (Lead Capture)
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
+      // Filter out irrelevant fields based on model
+      const cleanedInputs = { ...inputs };
+
+      // 1. Remove irrelevant fields
+      if (cleanedInputs.acquisitionModel === AcquisitionModel.SUBLEASE) {
+        // Rent-to-Rent: No mortgage needed
+        delete (cleanedInputs as any).interestRate;
+        delete (cleanedInputs as any).loanTermYears;
+        delete (cleanedInputs as any).downPaymentPercent;
+        delete (cleanedInputs as any).customPropertyPrice;
+      } else if (cleanedInputs.acquisitionModel === AcquisitionModel.BUY) {
+        // Buy: No Rent needed (though implicit)
+        delete (cleanedInputs as any).monthsDeposit;
+        delete (cleanedInputs as any).customMonthlyRent;
+      }
+
+      // 2. Enrich with defaults (Assumptions used in calculation)
+      const regionData = KENYA_REGIONS.find(r => r.id === inputs.regionId);
+      if (regionData) {
+        if (!cleanedInputs.customOccupancy) {
+          cleanedInputs.customOccupancy = regionData.avgOccupancy;
+        }
+        if (!cleanedInputs.customNightlyRate) {
+          cleanedInputs.customNightlyRate = regionData.avgNightlyRate[inputs.propertyType];
+        }
+        // Financials - Use Enum for consistency
+        if (cleanedInputs.acquisitionModel === AcquisitionModel.SUBLEASE && !cleanedInputs.customMonthlyRent) {
+          cleanedInputs.customMonthlyRent = regionData.avgRent[inputs.propertyType];
+        }
+        if (cleanedInputs.acquisitionModel === AcquisitionModel.BUY && !cleanedInputs.customPropertyPrice) {
+          cleanedInputs.customPropertyPrice = regionData.avgBuyPrice[inputs.propertyType];
+        }
+      }
+
+      // 3. Enrich Operating Costs (Assumptions)
+      if (!cleanedInputs.customCleaningCost) cleanedInputs.customCleaningCost = OPERATING_CONSTANTS.CLEANING_PER_DAY;
+      if (!cleanedInputs.customWifiCost) cleanedInputs.customWifiCost = OPERATING_CONSTANTS.INTERNET_MONTHLY;
+      if (!cleanedInputs.customNetflixCost) cleanedInputs.customNetflixCost = OPERATING_CONSTANTS.DSTV_MONTHLY;
+      if (!cleanedInputs.customElectricityCost) cleanedInputs.customElectricityCost = OPERATING_CONSTANTS.ELECTRICITY_MONTHLY[inputs.propertyType];
+      if (!cleanedInputs.customWaterCost) cleanedInputs.customWaterCost = OPERATING_CONSTANTS.WATER_MONTHLY[inputs.propertyType];
+
+      // Startup Assumptions
+      if (cleanedInputs.acquisitionModel === AcquisitionModel.SUBLEASE && !cleanedInputs.monthsDeposit) {
+        cleanedInputs.monthsDeposit = STARTUP_COSTS.DEPOSIT_MONTHS;
+      }
+
+      const payload = {
+        ...cleanedInputs,
+        meta: {
+          device: {
+            screen: `${window.innerWidth}x${window.innerHeight}`,
+            language: navigator.language,
+            userAgent: navigator.userAgent,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            isMobile: window.innerWidth < 768,
+          },
+          // relying on server timestamp to avoid duplication confusion
+          // timestamp: new Date().toISOString() 
+        }
+      };
+
+      fetch(`${API_BASE_URL}/api/save-calculation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      }).catch(err => console.error('Background save failed', err));
+    } catch (e) {
+      // Ignore errors, don't block user
+    }
+
     // Paywall Gate: Require payment before generating report
     if (!isPaid && !forceProceed) {
       onOpenPayment();

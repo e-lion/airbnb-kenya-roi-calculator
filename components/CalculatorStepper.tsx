@@ -319,7 +319,7 @@ export const CalculatorStepper: React.FC<CalculatorStepperProps> = ({ inputs, se
         onClick={onCalculate}
         className="w-full py-4 mt-4 bg-gradient-to-br from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-lg rounded-2xl shadow-xl shadow-emerald-900/20 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2"
       >
-        <span>Generate Return on Investment Report</span>
+        <span>Generate Insights</span>
         <TrendingUp size={20} />
       </button>
     </div>

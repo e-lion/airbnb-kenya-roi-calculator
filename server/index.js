@@ -292,32 +292,25 @@ app.post('/api/save-email', async (req, res) => {
       formattedPhone = '254' + formattedPhone;
     }
 
-    const paymentsRef = db.collection('payments');
-    // Find the successful transaction for this phone number
-    const snapshot = await paymentsRef
-      .where('phoneNumber', '==', formattedPhone)
-      .where('status', '==', 'completed')
-      // Removed orderBy to avoid needing a composite index for now. 
-      // It's unlikely a user has many completed payments in short succession, 
-      // and attaching to any of them is acceptible.
-      .limit(1)
-      .get();
+    console.log(`[DEBUG] Save Email Request: Raw=${phoneNumber}, fmt=${formattedPhone}, Email=${email}`);
 
-    if (snapshot.empty) {
-      console.warn(`No completed payment found for ${phoneNumber} to attach email to. Creating new user record instead?`);
-      // Fallback: Create a new 'lead' or 'user' doc if no payment found?
-      // For now, let's just log it. The requirement was "against the paid user number".
-      // If they are "paid", they should have a record.
-      return res.status(404).json({ error: 'No payment record found for this number' });
+    // DIRECT SAVE TO LEADS (Bypassing payment check)
+    try {
+      await db.collection('leads').add({
+        phoneNumber: formattedPhone,
+        rawPhoneNumber: phoneNumber,
+        email: email,
+        source: 'roi_report_unlock',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      console.log(`[INFO] Email saved to leads for ${formattedPhone} (Direct Save)`);
+      return res.json({ success: true, message: 'Email saved successfully' });
+      
+    } catch (err) {
+      console.error('Error saving to leads:', err);
+      return res.status(500).json({ error: 'Failed to save email' });
     }
-
-    const doc = snapshot.docs[0];
-    await doc.ref.update({
-      email: email,
-      emailUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-    res.json({ success: true, message: 'Email saved successfully' });
 
   } catch (error) {
     console.error('Save email error:', error);
@@ -345,6 +338,31 @@ app.post('/api/admin/scrape', async (req, res) => {
 // Simple in-memory cache
 const marketDataCache = {};
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+// --- Save Raw Calculation Data Endpoint ---
+app.post('/api/save-calculation', async (req, res) => {
+  try {
+    const calculationData = req.body;
+    
+    // Basic validation
+    if (!calculationData) {
+      return res.status(400).json({ error: 'No data provided' });
+    }
+
+    await db.collection('calculations').add({
+      ...calculationData,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      source: 'web_stepper'
+    });
+
+    console.log('[INFO] Raw calculation data saved');
+    res.json({ success: true, message: 'Calculation saved' });
+
+  } catch (error) {
+    console.error('Error saving calculation:', error);
+    // Don't expose internal errors to client, just 500
+    res.status(500).json({ error: 'Failed to save calculation' });
+  }
+});
 
 // Market Data Endpoint
 app.get('/api/market-data', async (req, res) => {
