@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import { Download, Lock, Share2, TrendingUp, DollarSign, Calendar, Info, CheckCircle2, AlertTriangle, HelpCircle, Briefcase, Wallet } from 'lucide-react';
 import { PaymentCard } from './PaymentModal';
+import { EmailModal } from './EmailModal';
 import { CalculationResult, AcquisitionModel, UserInputs, PropertyType } from '../types';
 import { PAYMENT_AMOUNT_KES, KENYA_REGIONS, OPERATING_COSTS, ISP_PROVIDERS } from '../constants';
 import { getSmartMarketData } from '../services/smartMarketService';
@@ -46,6 +47,18 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
   const [loading, setLoading] = useState(false);
   const regionName = KENYA_REGIONS.find(r => r.id === inputs.regionId)?.name || inputs.regionId;
   const regionData = KENYA_REGIONS.find(r => r.id === inputs.regionId);
+
+  const [showEmailModal, setShowEmailModal] = useState(false);
+
+  const handleExport = () => {
+    // Check if we already have the email
+    const savedEmail = localStorage.getItem('userEmail');
+    if (savedEmail) {
+      generatePDF(results, inputs);
+    } else {
+      setShowEmailModal(true);
+    }
+  };
 
   const blurClass = isLocked ? "blur-md select-none opacity-50 pointer-events-none" : "";
 
@@ -111,6 +124,13 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         </div>
       )}
 
+      <EmailModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        onSuccess={() => generatePDF(results, inputs)}
+        userPhone={localStorage.getItem('userPhone')}
+      />
+
       {/* Top Action Bar */}
       <div className={`flex justify-end gap-3 mb-4 ${blurClass}`}>
         <button
@@ -125,7 +145,7 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
           disabled={isLocked}
           onClick={() => {
             if (isLocked) return;
-            generatePDF(results, inputs);
+            handleExport();
           }}
           className={`flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all transform hover:-translate-y-0.5 text-sm font-bold ${isLocked ? 'cursor-not-allowed opacity-50 bg-slate-400 shadow-none' : ''
             }`}
@@ -328,37 +348,78 @@ export const ResultsDashboard: React.FC<ResultsDashboardProps> = ({
         </div>
 
         {/* Expense Breakdown */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 h-96 flex flex-col">
-          <div className="mb-4">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 min-h-[500px] flex flex-col">
+          <div className="mb-6">
             <h3 className="text-lg font-semibold text-slate-800">Where Does the Money Go?</h3>
             <p className="text-sm text-slate-500">Breakdown of your monthly operating expenses.</p>
           </div>
-          <div className="flex flex-grow items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={results.expenseBreakdown}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="amount"
-                  nameKey="label"
-                >
-                  {results.expenseBreakdown.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(val: number) => formatMoney(val)} />
-                <Legend
-                  layout="vertical"
-                  verticalAlign="middle"
-                  align="right"
-                  formatter={(value, entry: any) => <span className="text-xs text-slate-600 ml-2">{value}</span>}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+
+          <div className="flex-grow flex flex-col items-center justify-center gap-8">
+            {/* Chart Area */}
+            <div className="w-full h-[280px] relative">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[...results.expenseBreakdown]
+                      .map(item => ({ ...item, amount: item.amount / 12 }))
+                      .sort((a, b) => b.amount - a.amount)
+                    }
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={70}
+                    outerRadius={100}
+                    paddingAngle={3}
+                    dataKey="amount"
+                    nameKey="label"
+                  >
+                    {[...results.expenseBreakdown]
+                      .sort((a, b) => b.amount - a.amount)
+                      .map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
+                      ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(val: number) => formatMoney(val)}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+
+              {/* Center cost text (optional flair) */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center">
+                  <span className="text-xs text-slate-400 font-medium">Total / Mo</span>
+                  <p className="text-slate-700 font-bold">{formatMoney(results.expenseBreakdown.reduce((sum, i) => sum + i.amount, 0) / 12, true)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Premium Custom Legend */}
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[...results.expenseBreakdown]
+                .map(item => ({ ...item, amount: item.amount / 12 })) // Convert to Monthly
+                .sort((a, b) => b.amount - a.amount)
+                .map((item, index) => {
+                  const totalMonthly = results.expenseBreakdown.reduce((acc, curr) => acc + curr.amount, 0) / 12;
+                  const percent = totalMonthly > 0 ? (item.amount / totalMonthly) * 100 : 0;
+
+                  return (
+                    <div key={index} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-100">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full shadow-sm"
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        <span className="text-sm text-slate-700 font-medium">{item.label}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-slate-800">{formatMoney(item.amount)}</p>
+                        <p className="text-[10px] text-slate-500">{percent.toFixed(1)}%</p>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
           </div>
         </div>
       </div>

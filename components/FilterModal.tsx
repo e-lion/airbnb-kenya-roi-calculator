@@ -64,7 +64,7 @@ export const FilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, input
                     <h3 className="text-lg font-bold text-slate-900">Filter & Assumptions</h3>
                     <button
                         onClick={handleReset}
-                        className="text-xs font-medium text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                        className="text-xs font-medium text-emerald-600 hover:text-emerald-700 flex items-center gap-1 mr-10 sm:mr-0"
                     >
                         <RotateCcw size={14} />
                         Reset Defaults

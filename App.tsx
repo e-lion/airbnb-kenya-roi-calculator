@@ -17,6 +17,7 @@ import { PaymentModal } from './components/PaymentModal';
 import { ReportFilters } from './components/ReportFilters';
 import { calculateROI } from './services/calculatorService';
 import { fetchMarketData } from './services/marketService';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
 import {
   AcquisitionModel,
   FurnishingStandard,
@@ -274,6 +275,8 @@ const ReportPage: React.FC<ReportPageProps> = ({ results, inputs, setInputs, set
   );
 };
 
+
+
 // --- Main App Component ---
 const App: React.FC = () => {
   const [isPaid, setIsPaid] = useState<boolean>(() => {
@@ -284,17 +287,49 @@ const App: React.FC = () => {
   const location = useLocation();
 
   // Lifted State
-  const [inputs, setInputs] = useState<UserInputs>({
-    regionId: 'nbo-westlands',
-    propertyType: PropertyType.ONE_BEDROOM,
-    acquisitionModel: AcquisitionModel.SUBLEASE,
-    furnishingStandard: FurnishingStandard.MID_RANGE,
-    downPaymentPercent: 20,
-    interestRate: 14,
-    loanTermYears: 15,
-    monthsDeposit: 2,
+  const [inputs, setInputs] = useState<UserInputs>(() => {
+    const saved = localStorage.getItem('calculatorInputs');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse saved inputs", e);
+      }
+    }
+    return {
+      regionId: 'nbo-westlands',
+      propertyType: PropertyType.ONE_BEDROOM,
+      acquisitionModel: AcquisitionModel.SUBLEASE,
+      furnishingStandard: FurnishingStandard.MID_RANGE,
+      downPaymentPercent: 20,
+      interestRate: 14,
+      loanTermYears: 15,
+      monthsDeposit: 2,
+    };
   });
-  const [results, setResults] = useState<CalculationResult | null>(null);
+
+  const [results, setResults] = useState<CalculationResult | null>(() => {
+    const saved = localStorage.getItem('calculatorResults');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse saved results", e);
+      }
+    }
+    return null;
+  });
+
+  // Persistence Effects
+  useEffect(() => {
+    localStorage.setItem('calculatorInputs', JSON.stringify(inputs));
+  }, [inputs]);
+
+  useEffect(() => {
+    if (results) {
+      localStorage.setItem('calculatorResults', JSON.stringify(results));
+    }
+  }, [results]);
 
   // Scroll to top on route change
   useEffect(() => {
@@ -368,6 +403,7 @@ const App: React.FC = () => {
               onPaidSuccess={handlePaidSuccess}
             />}
           />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         </Routes>
       </main>
 
@@ -376,16 +412,6 @@ const App: React.FC = () => {
         onClose={() => setShowPaymentModal(false)}
         onSuccess={() => {
           handlePaidSuccess();
-          // Logic to auto-proceed if we were trying to calculate?
-          // For now, if on Calculator page, user can click "Generate" again.
-          // Or we can assume if they paid, they want to see results. 
-          // But since handleCalculate logic is inside CalculatorPage...
-          // We can perhaps just close modal and let user click. 
-          // OR: We can trigger a re-render/logic. 
-          // Actually, passing `handlePaidSuccess` which closes modal is enough.
-          // The previous logic had `handleCalculate(true)` in `onSuccess`.
-          // To preserve that: `CalculatorPage` might need to listen to `isPaid` change?
-          // Or we can rely on user clicking safely.
         }}
       />
 
@@ -393,7 +419,8 @@ const App: React.FC = () => {
       <footer className="bg-white border-t border-slate-200 py-12">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-slate-500 text-sm">
           <p>© 2025 Airbnb Kenya ROI. Data is for estimation only.</p>
-          <div className="flex gap-6 mt-4 md:mt-0">
+          <div className="flex gap-6 mt-4 md:mt-0 items-center">
+            <button onClick={() => navigate('/privacy-policy')} className="hover:text-emerald-600 transition-colors">Privacy Policy</button>
             <a href="https://www.instagram.com/kenya_hustle/" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-600"><Instagram size={20} /></a>
           </div>
         </div>

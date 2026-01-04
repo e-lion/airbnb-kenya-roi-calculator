@@ -36,11 +36,20 @@ export const generatePDF = (results: CalculationResult, inputs: UserInputs) => {
     doc.setFont('helvetica', 'bold');
     doc.text('Executive Summary', 14, 55);
 
+    const regionData = KENYA_REGIONS.find(r => r.id === inputs.regionId);
+
+    // Calculate defaults matching Dashboard logic
+    const occupancyRate = inputs.customOccupancy !== undefined
+        ? inputs.customOccupancy
+        : (regionData?.avgOccupancy || 0.7);
+
+    const nightlyRate = inputs.customNightlyRate || (regionData?.avgNightlyRate[inputs.propertyType] || 0);
+
     const summaryData = [
         ['Investment Strategy', inputs.acquisitionModel === AcquisitionModel.BUY ? 'Buy & Host' : 'Rent-to-Rent'],
         ['Property Type', inputs.propertyType],
-        ['Target Occupancy', `${(inputs.customOccupancy !== undefined ? inputs.customOccupancy * 100 : 70).toFixed(0)}%`],
-        ['Nightly Rate', formatMoney(inputs.customNightlyRate || 0)],
+        ['Target Occupancy', `${(occupancyRate * 100).toFixed(0)}%`],
+        ['Nightly Rate', formatMoney(nightlyRate)],
     ];
 
     autoTable(doc, {
@@ -90,7 +99,6 @@ export const generatePDF = (results: CalculationResult, inputs: UserInputs) => {
         ['First Month Rent', formatMoney(results.startupCosts.firstMonthRent)],
         ['Fixtures & Fittings', formatMoney(results.startupCosts.fixtures)],
         ['Legal & Utility Deposits', formatMoney(results.startupCosts.utilityDeposits + results.startupCosts.legalAdmin)],
-        ['TOTAL STARTUP', formatMoney(results.initialInvestment)],
     ];
 
     autoTable(doc, {
@@ -117,7 +125,7 @@ export const generatePDF = (results: CalculationResult, inputs: UserInputs) => {
         doc.text('Monthly Operating Expenses', 14, expStartY);
     }
 
-    const expenseData = results.expenseBreakdown.map(item => [item.label, formatMoney(item.amount)]);
+    const expenseData = results.expenseBreakdown.map(item => [item.label, formatMoney(item.amount / 12)]);
 
     autoTable(doc, {
         startY: expStartY > 250 ? 25 : expStartY + 5,
@@ -127,6 +135,7 @@ export const generatePDF = (results: CalculationResult, inputs: UserInputs) => {
         headStyles: { fillColor: [185, 28, 28] }, // Red 700
         foot: [['TOTAL MONTHLY', formatMoney(
             (results.monthlyOpex.rent || 0) +
+            (results.monthlyOpex.mortgage || 0) +
             (results.monthlyOpex.cleaning || 0) +
             (results.monthlyOpex.internet || 0) +
             (results.monthlyOpex.electricity || 0) +

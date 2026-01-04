@@ -36,6 +36,11 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ onSuccess, className =
 
           // Store payment success in localStorage
           localStorage.setItem('roiCalculatorUnlocked', 'true');
+          // We can't easily get the phone number here unless we store it from the initiate request
+          // or if the status endpoint returns it. The status endpoint DOES return it.
+          if (response.data.phoneNumber) {
+            localStorage.setItem('userPhone', response.data.phoneNumber.toString());
+          }
 
           setTimeout(() => {
             onSuccess();
@@ -90,6 +95,41 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ onSuccess, className =
     }
   };
 
+  const [receiptNumber, setReceiptNumber] = useState('');
+  const [verifyLoading, setVerifyLoading] = useState(false);
+
+  const handleVerify = async () => {
+    if (receiptNumber.length < 5) return;
+
+    setVerifyLoading(true);
+    setErrorMessage('');
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/mpesa/verify-transaction`, {
+        mpesaReceiptNumber: receiptNumber.toUpperCase().trim(),
+      });
+
+      if (response.data.success) {
+        setStatus('success');
+        // Store payment success in localStorage
+        localStorage.setItem('roiCalculatorUnlocked', 'true');
+        if (response.data.phoneNumber) {
+          localStorage.setItem('userPhone', response.data.phoneNumber);
+        }
+        setTimeout(() => {
+          onSuccess();
+        }, 1500);
+      } else {
+        setErrorMessage('Invalid receipt number or transaction not found.');
+      }
+    } catch (error: any) {
+      console.error('Verification error:', error);
+      setErrorMessage(error.response?.data?.message || 'Verification failed. Please check the code.');
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
   const handleRetry = () => {
     setStatus('idle');
     setErrorMessage('');
@@ -133,61 +173,126 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ onSuccess, className =
       <div className="p-6 text-left">
         {status === 'idle' && (
           <>
-            <div className="mb-6 space-y-3">
-              <div className="flex items-start gap-3 text-sm text-slate-600">
-                <div className="p-1 bg-emerald-100 rounded-full mt-0.5"><CheckCircle size={12} className="text-emerald-600" /></div>
-                <span><strong className="text-slate-800">Live Revenue Feeds:</strong> Real-time occupancy & nightly rates from comparable listings.</span>
-              </div>
-              <div className="flex items-start gap-3 text-sm text-slate-600">
-                <div className="p-1 bg-emerald-100 rounded-full mt-0.5"><CheckCircle size={12} className="text-emerald-600" /></div>
-                <span><strong className="text-slate-800">Investment Grade Data:</strong> Bank-ready 5-year cash flow models.</span>
-              </div>
-              <div className="flex items-start gap-3 text-sm text-slate-600">
-                <div className="p-1 bg-emerald-100 rounded-full mt-0.5"><CheckCircle size={12} className="text-emerald-600" /></div>
-                <span><strong className="text-slate-800">Smart Benchmarking:</strong> Compare your potential ROI against top performers in the area.</span>
-              </div>
-              <div className="flex items-start gap-3 text-sm text-slate-600">
-                <div className="p-1 bg-emerald-100 rounded-full mt-0.5"><CheckCircle size={12} className="text-emerald-600" /></div>
-                <span><strong className="text-slate-800">Risk Analysis:</strong> Buy vs. Rent-to-Rent deep-dive scenarios.</span>
-              </div>
-            </div>
-
-            <div className="flex justify-between items-center mb-6 pt-4 border-t border-slate-100">
-              <span className="text-slate-600 font-medium">Total Amount</span>
-              <span className="text-2xl font-bold text-slate-900">KES {PAYMENT_AMOUNT_KES}</span>
-            </div>
-
-            <div className="space-y-4">
-              <label className="block text-sm font-medium text-slate-700">
-                M-PESA Phone Number
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-3 text-slate-400 font-medium">+254</span>
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  placeholder="7XX XXX XXX"
-                  className="w-full pl-16 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                />
+            <div className={`transition-all duration-300 ${verifyLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+              {/* Show restore Input if specifically toggled, OR keep it simple? 
+                  Let's just toggle 'idle' state content. 
+                  Actually, let's keep it simple: Pay OR "I already paid" which swaps view.
+              */}
+              <div className="mb-6 space-y-3">
+                <div className="flex items-start gap-3 text-sm text-slate-600">
+                  <div className="p-1 bg-emerald-100 rounded-full mt-0.5"><CheckCircle size={12} className="text-emerald-600" /></div>
+                  <span><strong className="text-slate-800">Live Revenue Feeds:</strong> Real-time occupancy & nightly rates from comparable listings.</span>
+                </div>
+                <div className="flex items-start gap-3 text-sm text-slate-600">
+                  <div className="p-1 bg-emerald-100 rounded-full mt-0.5"><CheckCircle size={12} className="text-emerald-600" /></div>
+                  <span><strong className="text-slate-800">Investment Grade Data:</strong> Bank-ready 5-year cash flow models.</span>
+                </div>
+                <div className="flex items-start gap-3 text-sm text-slate-600">
+                  <div className="p-1 bg-emerald-100 rounded-full mt-0.5"><CheckCircle size={12} className="text-emerald-600" /></div>
+                  <span><strong className="text-slate-800">Smart Benchmarking:</strong> Compare your potential ROI against top performers in the area.</span>
+                </div>
+                <div className="flex items-start gap-3 text-sm text-slate-600">
+                  <div className="p-1 bg-emerald-100 rounded-full mt-0.5"><CheckCircle size={12} className="text-emerald-600" /></div>
+                  <span><strong className="text-slate-800">Risk Analysis:</strong> Buy vs. Rent-to-Rent deep-dive scenarios.</span>
+                </div>
               </div>
 
-              <button
-                onClick={handlePay}
-                disabled={phone.length < 9}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2"
-              >
-                <Smartphone size={20} />
-                Pay with M-PESA
-              </button>
-              <p className="text-xs text-center text-slate-500 mt-4 flex items-center justify-center gap-1">
-                <CheckCircle size={10} className="text-emerald-600" />
-                Secure Payment processed instantly
-              </p>
+              <div className="flex justify-between items-center mb-6 pt-4 border-t border-slate-100">
+                <span className="text-slate-600 font-medium">Total Amount</span>
+                <span className="text-2xl font-bold text-slate-900">KES {PAYMENT_AMOUNT_KES}</span>
+              </div>
+
+              <div className="space-y-4">
+                <label className="block text-sm font-medium text-slate-700">
+                  M-PESA Phone Number
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-3 text-slate-400 font-medium">+254</span>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="7XX XXX XXX"
+                    className="w-full pl-16 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                  />
+                </div>
+
+                <button
+                  onClick={handlePay}
+                  disabled={phone.length < 9}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2"
+                >
+                  <Smartphone size={20} />
+                  Pay with M-PESA
+                </button>
+
+                <div className="text-center pt-2">
+                  <button
+                    onClick={() => setStatus('verify' as any)}
+                    className="text-sm text-emerald-600 font-medium hover:underline"
+                  >
+                    I already paid? Restore access
+                  </button>
+                </div>
+
+                <p className="text-xs text-center text-slate-500 mt-2 flex items-center justify-center gap-1">
+                  <CheckCircle size={10} className="text-emerald-600" />
+                  Secure Payment processed instantly
+                </p>
+              </div>
             </div>
           </>
+        )}
+
+        {/* VERIFY MODE */}
+        {(status as any) === 'verify' && (
+          <div className="space-y-4 py-4 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-bold text-slate-800">Restore Purchase</h3>
+              <p className="text-sm text-slate-500">Enter your M-Pesa transaction code to unlock.</p>
+            </div>
+
+            {errorMessage && (
+              <div className="p-3 bg-red-50 text-red-600 text-sm rounded-lg flex items-center gap-2">
+                <AlertCircle size={16} />
+                {errorMessage}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                M-Pesa Receipt Number
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. QKB23..."
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition uppercase"
+                value={receiptNumber}
+                onChange={(e) => setReceiptNumber(e.target.value)}
+              />
+            </div>
+
+            <button
+              onClick={handleVerify}
+              disabled={receiptNumber.length < 5 || verifyLoading}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-3 rounded-lg shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2"
+            >
+              {verifyLoading ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle size={20} />}
+              {verifyLoading ? 'Verifying...' : 'Restore Access'}
+            </button>
+
+            <button
+              onClick={() => {
+                setStatus('idle');
+                setErrorMessage('');
+              }}
+              className="w-full text-slate-500 hover:text-slate-800 text-sm font-medium py-2"
+            >
+              Cancel, go back
+            </button>
+          </div>
         )}
 
         {status === 'processing' && (
@@ -205,8 +310,8 @@ export const PaymentCard: React.FC<PaymentCardProps> = ({ onSuccess, className =
         {status === 'success' && (
           <div className="text-center py-8">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-slate-800">Payment Successful!</h3>
-            <p className="text-slate-500 mt-2">Unlocking your report...</p>
+            <h3 className="text-xl font-bold text-slate-800">Success!</h3>
+            <p className="text-slate-500 mt-2">Access Restored. Unlocking report...</p>
           </div>
         )}
 

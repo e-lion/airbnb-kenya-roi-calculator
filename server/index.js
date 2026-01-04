@@ -93,7 +93,7 @@ app.post('/api/mpesa/stkpush', async (req, res) => {
       PartyB: MPESA_SHORTCODE,
       PhoneNumber: formattedPhone,
       CallBackURL: MPESA_CALLBACK_URL,
-      AccountReference: 'AirbnbKenyaROI',
+      AccountReference: `KHC-${formattedPhone}`,
       TransactionDesc: 'ROI Calculator Unlock',
     };
 
@@ -228,6 +228,90 @@ app.get('/api/mpesa/status/:checkoutRequestId', async (req, res) => {
   } catch (error) {
     console.error('Status check error:', error);
     res.status(500).json({ error: 'Failed to check status' });
+  }
+});
+
+// Verify transaction by Receipt Number
+app.post('/api/mpesa/verify-transaction', async (req, res) => {
+  const { mpesaReceiptNumber } = req.body;
+
+  if (!mpesaReceiptNumber) {
+    return res.status(400).json({ error: 'Receipt number is required' });
+  }
+
+  try {
+    const paymentsRef = db.collection('payments');
+    // Query for successful transaction with this receipt number
+    const snapshot = await paymentsRef
+      .where('mpesaReceiptNumber', '==', mpesaReceiptNumber)
+      .where('status', '==', 'completed')
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Transaction not found or not completed' 
+      });
+    }
+
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+
+    // Determine environment/mode from transaction if available, otherwise just confirm success
+    return res.json({
+      success: true,
+      message: 'Transaction verified',
+      transactionDate: data.transactionDate,
+      amount: data.amount,
+      phoneNumber: data.phoneNumber // Return phone number for client persistence
+    });
+
+  } catch (error) {
+    console.error('Verify transaction error:', error);
+    res.status(500).json({ error: 'Failed to verify transaction' });
+  }
+});
+
+// Save Email Endpoint
+app.post('/api/save-email', async (req, res) => {
+  const { phoneNumber, email } = req.body;
+
+  if (!phoneNumber || !email) {
+    return res.status(400).json({ error: 'Phone number and email are required' });
+  }
+
+  try {
+    const paymentsRef = db.collection('payments');
+    // Find the successful transaction for this phone number
+    // Ideally we'd have a separate 'users' collection, but updating the payment record works for this scope.
+    // We'll update the most recent completed payment for this phone number.
+    const snapshot = await paymentsRef
+      .where('phoneNumber', '==', phoneNumber) // Assumes phoneNumber format matches exactly what we stored
+      .where('status', '==', 'completed')
+      .orderBy('updatedAt', 'desc')
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      console.warn(`No completed payment found for ${phoneNumber} to attach email to. Creating new user record instead?`);
+      // Fallback: Create a new 'lead' or 'user' doc if no payment found?
+      // For now, let's just log it. The requirement was "against the paid user number".
+      // If they are "paid", they should have a record.
+      return res.status(404).json({ error: 'No payment record found for this number' });
+    }
+
+    const doc = snapshot.docs[0];
+    await doc.ref.update({
+      email: email,
+      emailUpdatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.json({ success: true, message: 'Email saved successfully' });
+
+  } catch (error) {
+    console.error('Save email error:', error);
+    res.status(500).json({ error: 'Failed to save email' });
   }
 });
 
