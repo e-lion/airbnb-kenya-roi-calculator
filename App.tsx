@@ -157,7 +157,7 @@ const CalculatorPage: React.FC<CalculatorPageProps> = ({
   const handleCalculate = async (forceProceed = false) => {
     // 0. Fire-and-forget: Save Raw Calculation Data (Lead Capture)
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
       // Filter out irrelevant fields based on model
       const cleanedInputs = { ...inputs };
@@ -226,7 +226,12 @@ const CalculatorPage: React.FC<CalculatorPageProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-      }).catch(err => console.error('Background save failed', err));
+      })
+      .then(res => {
+        if (!res.ok) throw new Error(res.statusText);
+        console.log("✅ Calculation saved to backend");
+      })
+      .catch(err => console.error('❌ Background save failed. Is the server running on port 3001?', err));
     } catch (e) {
       // Ignore errors, don't block user
     }
