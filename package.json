@@ -20,9 +20,9 @@
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.555.0",
-    "posthog-js": "^1.313.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
+    "react-ga4": "^2.1.0",
     "react-is": "^19.2.3",
     "react-router-dom": "^7.10.1",
     "recharts": "^3.5.1"

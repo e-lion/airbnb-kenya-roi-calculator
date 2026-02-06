@@ -353,6 +353,8 @@ const ReportPage: React.FC<ReportPageProps> = ({ results, inputs, setInputs, set
 
 
 
+import AnalyticsDefault from './components/AnalyticsDefault';
+
 // --- Main App Component ---
 const App: React.FC = () => {
   const [isPaid, setIsPaid] = useState<boolean>(() => {
@@ -424,6 +426,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col font-sans text-slate-800">
+      <AnalyticsDefault />
       {/* Navbar */}
       <nav className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
