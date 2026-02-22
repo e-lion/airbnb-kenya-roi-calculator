@@ -18,98 +18,96 @@ export const ReportFilters: React.FC<ReportFiltersProps> = ({ inputs, onFilterCh
 
     return (
         <>
-            <div className={`bg-white border-b border-slate-200 sticky top-16 z-30 shadow-sm animate-in slide-in-from-top-2 duration-300 ${disabled ? 'opacity-60 pointer-events-none select-none blur-[1px]' : ''}`}>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className={`border-b border-slate-200 sticky top-0 z-40 bg-white/80 backdrop-blur-md shadow-sm animate-in slide-in-from-top-2 duration-300 ${disabled ? 'opacity-60 pointer-events-none select-none blur-[1px]' : ''}`}>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
 
                         {/* Summary View (< lg) - Collapsed state for Mobile & Tablet */}
                         <div className="lg:hidden flex items-center gap-3 overflow-hidden flex-1">
                             <div className="flex flex-col min-w-0">
-                                <span className="text-sm sm:text-base font-bold text-slate-900 truncate">{regionName}</span>
-                                <div className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 font-medium truncate">
-                                    <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">{inputs.propertyType}</span>
-                                    <span className="text-slate-300">•</span>
-                                    <span className={`px-1.5 py-0.5 rounded ${inputs.acquisitionModel === 'BUY' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
-                                        {inputs.acquisitionModel === 'BUY' ? 'Buy' : 'Rent'}
+                                <span className="text-base font-black text-brand-navy truncate">{regionName}</span>
+                                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-bold truncate uppercase tracking-wider">
+                                    <span className="bg-slate-100 px-2 py-0.5 rounded-lg text-slate-600">{inputs.propertyType}</span>
+                                    <span className="text-slate-300 font-black">•</span>
+                                    <span className={`px-2 py-0.5 rounded-lg ${inputs.acquisitionModel === 'BUY' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                                        {inputs.acquisitionModel === 'BUY' ? 'Buy & Host' : 'Rent-to-Rent'}
                                     </span>
-                                    <span className="text-slate-300 hidden sm:inline">•</span>
-                                    <span className="hidden sm:inline bg-slate-100 px-1.5 py-0.5 rounded text-slate-600">{inputs.furnishingStandard}</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Desktop Filters (>= lg) - Full Expanded Row */}
                         <div className="hidden lg:flex items-center gap-3 overflow-x-auto no-scrollbar">
-                            <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400 mr-2 flex-shrink-0">
+                            <span className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 mr-2 flex-shrink-0">
                                 <SettingsIcon size={14} />
-                                Parameters:
+                                Configuration:
                             </span>
 
                             {/* Region */}
                             <div className="relative group flex-shrink-0">
-                                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-full cursor-pointer transition-colors">
-                                    <MapPin size={14} className="text-slate-500" />
+                                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-white border-2 border-slate-100 hover:border-brand-yellow rounded-2xl cursor-pointer transition-all shadow-sm hover:shadow-md">
+                                    <MapPin size={14} className="text-brand-navy" />
                                     <select
                                         value={inputs.regionId}
                                         onChange={(e) => onFilterChange('regionId', e.target.value)}
-                                        className="bg-transparent border-none text-sm font-medium text-slate-700 outline-none cursor-pointer appearance-none pr-6 focus:ring-0 w-auto max-w-[150px] truncate"
+                                        className="bg-transparent border-none text-xs font-black text-brand-navy outline-none cursor-pointer appearance-none pr-6 focus:ring-0 w-auto max-w-[150px] truncate uppercase tracking-tight"
                                     >
                                         {KENYA_REGIONS.map(region => (
                                             <option key={region.id} value={region.id}>{region.name}</option>
                                         ))}
                                     </select>
-                                    <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                                 </div>
                             </div>
 
                             {/* Property Type */}
                             <div className="relative group flex-shrink-0">
-                                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-full cursor-pointer transition-colors">
-                                    <Home size={14} className="text-slate-500" />
+                                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-white border-2 border-slate-100 hover:border-brand-yellow rounded-2xl cursor-pointer transition-all shadow-sm hover:shadow-md">
+                                    <Home size={14} className="text-brand-navy" />
                                     <select
                                         value={inputs.propertyType}
                                         onChange={(e) => onFilterChange('propertyType', e.target.value)}
-                                        className="bg-transparent border-none text-sm font-medium text-slate-700 outline-none cursor-pointer appearance-none pr-6 focus:ring-0"
+                                        className="bg-transparent border-none text-xs font-black text-brand-navy outline-none cursor-pointer appearance-none pr-6 focus:ring-0 uppercase tracking-tight"
                                     >
                                         {Object.values(PropertyType).map(type => (
                                             <option key={type} value={type}>{type}</option>
                                         ))}
                                     </select>
-                                    <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                                 </div>
                             </div>
 
                             {/* Strategy */}
                             <div className="relative group flex-shrink-0">
-                                <div className={`flex items-center gap-2 px-3 py-1.5 border rounded-full cursor-pointer transition-colors ${inputs.acquisitionModel === AcquisitionModel.BUY ? 'bg-blue-50 border-blue-200' : 'bg-emerald-50 border-emerald-200'}`}>
+                                <div className={`flex items-center gap-2 px-4 py-2 border-2 rounded-2xl cursor-pointer transition-all shadow-sm hover:shadow-md ${inputs.acquisitionModel === AcquisitionModel.BUY ? 'bg-blue-50 border-blue-200 hover:border-blue-400' : 'bg-emerald-50 border-emerald-200 hover:border-emerald-400'}`}>
                                     <Wallet size={14} className={inputs.acquisitionModel === AcquisitionModel.BUY ? 'text-blue-500' : 'text-emerald-500'} />
                                     <select
                                         value={inputs.acquisitionModel}
                                         onChange={(e) => onFilterChange('acquisitionModel', e.target.value)}
-                                        className={`bg-transparent border-none text-sm font-bold outline-none cursor-pointer appearance-none pr-6 focus:ring-0 ${inputs.acquisitionModel === AcquisitionModel.BUY ? 'text-blue-700' : 'text-emerald-700'}`}
+                                        className={`bg-transparent border-none text-xs font-black outline-none cursor-pointer appearance-none pr-6 focus:ring-0 uppercase tracking-tight ${inputs.acquisitionModel === AcquisitionModel.BUY ? 'text-blue-700' : 'text-emerald-700'}`}
                                     >
                                         {Object.values(AcquisitionModel).map(model => (
                                             <option key={model} value={model}>{model === AcquisitionModel.BUY ? 'Buy & Host' : 'Rent-to-Rent'}</option>
                                         ))}
                                     </select>
-                                    <ChevronDown size={12} className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none ${inputs.acquisitionModel === AcquisitionModel.BUY ? 'text-blue-400' : 'text-emerald-400'}`} />
+                                    <ChevronDown size={14} className={`absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none ${inputs.acquisitionModel === AcquisitionModel.BUY ? 'text-blue-400' : 'text-emerald-400'}`} />
                                 </div>
                             </div>
 
                             {/* Interiors */}
                             <div className="relative group flex-shrink-0">
-                                <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-full cursor-pointer transition-colors">
-                                    <Armchair size={14} className="text-slate-500" />
+                                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-white border-2 border-slate-100 hover:border-brand-yellow rounded-2xl cursor-pointer transition-all shadow-sm hover:shadow-md">
+                                    <Armchair size={14} className="text-brand-navy" />
                                     <select
                                         value={inputs.furnishingStandard}
                                         onChange={(e) => onFilterChange('furnishingStandard', e.target.value)}
-                                        className="bg-transparent border-none text-sm font-medium text-slate-700 outline-none cursor-pointer appearance-none pr-6 focus:ring-0"
+                                        className="bg-transparent border-none text-xs font-black text-brand-navy outline-none cursor-pointer appearance-none pr-6 focus:ring-0 uppercase tracking-tight"
                                     >
                                         {Object.values(FurnishingStandard).map(std => (
                                             <option key={std} value={std}>{std}</option>
                                         ))}
                                     </select>
-                                    <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                    <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                                 </div>
                             </div>
 
@@ -118,11 +116,11 @@ export const ReportFilters: React.FC<ReportFiltersProps> = ({ inputs, onFilterCh
                         {/* Edit / More Button */}
                         <button
                             onClick={() => setIsModalOpen(true)}
-                            className="ml-auto flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wide rounded-full shadow-md hover:shadow-lg transition-all active:scale-95 flex-shrink-0"
+                            className="ml-auto flex items-center gap-2 px-5 py-2.5 bg-brand-navy hover:bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-[0_4px_0_0_#00152B] transition-all hover:translate-y-[1px] hover:shadow-[0_3px_0_0_#00152B] active:translate-y-[3px] active:shadow-none flex-shrink-0"
                         >
                             <SlidersHorizontal size={14} />
-                            <span className="hidden sm:inline">Advanced</span>
-                            <span className="sm:hidden">Edit</span>
+                            <span className="hidden sm:inline">Advanced Settings</span>
+                            <span className="sm:hidden">Filters</span>
                         </button>
 
                     </div>

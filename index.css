@@ -1,7 +1,13 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-yellow: #ffd700;
+  --color-brand-navy: #001f3f;
+  --color-brand-white: #ffffff;
+}
+
 @layer base {
   body {
-    @apply antialiased text-slate-900 bg-slate-50;
+    @apply antialiased text-slate-900 bg-slate-50 font-sans;
   }
 }

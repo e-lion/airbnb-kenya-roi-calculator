@@ -65,37 +65,42 @@ export const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSucce
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}></div>
 
             {/* Card */}
-            <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative w-full max-w-md bg-white rounded-[40px] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 
                 {/* Header Graphic */}
-                <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-6 text-center">
-                    <div className="mx-auto bg-white/10 w-16 h-16 rounded-full flex items-center justify-center backdrop-blur-md mb-4 border border-white/20">
-                        <Mail className="text-emerald-400" size={32} />
+                <div className="bg-brand-navy p-8 text-center relative overflow-hidden">
+                    {/* Decorative blobs */}
+                    <div className="absolute top-[-20%] left-[-10%] w-32 h-32 bg-brand-yellow/10 rounded-full blur-2xl" />
+                    
+                    <div className="mx-auto bg-white/10 w-20 h-20 rounded-[30px] flex items-center justify-center backdrop-blur-md mb-6 border border-white/20 relative z-10">
+                        <Mail className="text-brand-yellow" size={36} />
                     </div>
-                    <h3 className="text-2xl font-bold text-white">Your Report is Ready</h3>
-                    <p className="text-slate-400 text-sm mt-2 max-w-xs mx-auto">
-                        Enter your email to receive your comprehensive PDF report and market updates.
+                    <h3 className="text-3xl font-black text-white uppercase tracking-tight relative z-10">Report Ready</h3>
+                    <p className="text-slate-300 text-xs font-bold uppercase tracking-widest mt-3 max-w-xs mx-auto relative z-10 opacity-80">
+                        Secure your market analysis
                     </p>
                 </div>
 
-                <div className="p-8">
+                <div className="p-10">
                     {status === 'success' ? (
-                        <div className="text-center py-6">
-                            <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4 animate-bounce" />
-                            <p className="text-lg font-semibold text-slate-800">Email Saved!</p>
-                            <p className="text-slate-500 text-sm">Downloading report...</p>
+                        <div className="text-center py-8">
+                            <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <CheckCircle className="w-10 h-10 text-emerald-500 animate-bounce" />
+                            </div>
+                            <p className="text-xl font-black text-brand-navy uppercase tracking-tight">Email Saved!</p>
+                            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-2">Generating your report...</p>
                         </div>
                     ) : (
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1.5 ml-1">Email Address</label>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Email Destination</label>
                                 <div className="relative">
-                                    <Mail className="absolute left-3.5 top-3.5 text-slate-400" size={18} />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-navy/30" size={18} />
                                     <input
                                         type="email"
                                         required
                                         placeholder="you@example.com"
-                                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-slate-800 placeholder:text-slate-400"
+                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-brand-yellow outline-none transition-all text-brand-navy font-bold placeholder:text-slate-300"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                     />
@@ -109,20 +114,20 @@ export const EmailModal: React.FC<EmailModalProps> = ({ isOpen, onClose, onSucce
                             <button
                                 type="submit"
                                 disabled={status === 'submitting'}
-                                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group"
+                                className="w-full bg-brand-navy hover:bg-slate-800 text-white font-black py-4 rounded-2xl shadow-[0_4px_0_0_#00152B] hover:translate-y-[1px] hover:shadow-[0_3px_0_0_#00152B] active:translate-y-[3px] active:shadow-none transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
                             >
                                 {status === 'submitting' ? (
                                     <Loader2 className="animate-spin" size={20} />
                                 ) : (
                                     <>
-                                        <span>Download Report</span>
+                                        <span>Download Analysis</span>
                                     </>
                                 )}
                             </button>
 
-                            <p className="text-xs text-center text-slate-400 flex items-center justify-center gap-1.5 mt-4">
-                                <Shield size={10} />
-                                <span>We respect your privacy. No spam, ever.</span>
+                            <p className="text-[9px] text-center text-slate-400 font-bold uppercase tracking-widest flex items-center justify-center gap-1.5 mt-6">
+                                <Shield size={10} className="text-brand-yellow" />
+                                <span>Zero-Spam Policy • Encrypted Data</span>
                             </p>
                         </form>
                     )}

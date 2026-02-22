@@ -2,7 +2,8 @@ import {
   AcquisitionModel,
   CalculationResult,
   FurnishingStandard,
-  UserInputs
+  UserInputs,
+  PaymentMethod
 } from '../types';
 import {
   BASE_FURNISHING_COSTS,
@@ -60,12 +61,13 @@ export const calculateROI = (inputs: UserInputs): CalculationResult => {
     legalAdmin = 150000; // Est. Closing costs
 
     // Mortgage Calc
-    const principal = buyPrice - acquisitionCost;
+    const isMortgage = inputs.paymentMethod === PaymentMethod.MORTGAGE;
+    const principal = isMortgage ? buyPrice - acquisitionCost : 0;
     const annualRate = (inputs.interestRate || DEFAULT_MORTGAGE_RATE) / 100;
     const termsMonths = (inputs.loanTermYears || 15) * 12;
     const monthlyRate = annualRate / 12;
 
-    if (principal > 0) {
+    if (isMortgage && principal > 0) {
       monthlyMortgage = principal * (monthlyRate * Math.pow(1 + monthlyRate, termsMonths)) / (Math.pow(1 + monthlyRate, termsMonths) - 1);
     }
   } else {

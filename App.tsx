@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import {
-  Building2,
   CheckCircle2,
   ChevronRight,
   Instagram,
   Twitter,
-  BarChart3,
   Shield,
-  ArrowLeft
+  ArrowLeft,
+  Building2,
 } from 'lucide-react';
 
 import { CalculatorStepper } from './components/CalculatorStepper';
@@ -27,263 +26,12 @@ import {
 } from './types';
 import { KENYA_REGIONS, OPERATING_CONSTANTS, STARTUP_COSTS } from './constants';
 
-// --- Landing Page Component ---
-const LandingPage: React.FC = () => {
-  const navigate = useNavigate();
-
-  return (
-    <div className="relative min-h-screen bg-slate-900 text-white overflow-hidden">
-      {/* Background Gradients */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-teal-500/10 rounded-full blur-[120px]" />
-      </div>
-
-      {/* Hero Section */}
-      <div className="relative z-10 pt-24 pb-16 lg:pt-32 lg:pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-900/50 border border-emerald-500/30 text-emerald-400 text-sm font-medium mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          Live Kenya Market Data 2024
-        </div>
-
-        <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight mb-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-100">
-          Master the Kenyan <br className="hidden sm:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">
-            Airbnb Market
-          </span>
-        </h1>
-
-        <p className="mt-4 max-w-2xl mx-auto text-xl text-slate-300 mb-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200 leading-relaxed">
-          Stop guessing. Estimate setup costs, revenue, and cash flow for properties in Nairobi, Mombasa, and Kisumu in seconds.
-        </p>
-
-        <div className="flex justify-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
-          <button
-            onClick={() => navigate('/calculator')}
-            className="group relative px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-full shadow-[0_0_40px_-10px_rgba(16,185,129,0.5)] transition-all hover:scale-105 flex items-center gap-3 text-lg"
-          >
-            Start Calculator
-            <ChevronRight className="group-hover:translate-x-1 transition-transform" />
-            <div className="absolute inset-0 rounded-full ring-2 ring-white/20 group-hover:ring-white/40 transition-all animate-pulse" />
-          </button>
-        </div>
-      </div>
-
-      {/* Features */}
-      <div className="relative z-10 py-24 border-t border-slate-800/50 bg-slate-900/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-3 gap-8">
-          {/* Feature 1 */}
-          <div className="group p-8 rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-emerald-500/50 hover:bg-slate-800/80 transition-all duration-300">
-            <div className="h-14 w-14 bg-emerald-900/50 rounded-2xl flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 transition-transform duration-300 border border-emerald-500/20">
-              <BarChart3 size={28} />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-3">Real Market Data</h3>
-            <p className="text-slate-400 leading-relaxed">
-              We aggregate real-time signals from trusted sources to give you realistic ownership costs, nightly rates, and trends.
-            </p>
-          </div>
-
-          {/* Feature 2 */}
-          <div className="group p-8 rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-purple-500/50 hover:bg-slate-800/80 transition-all duration-300">
-            <div className="h-14 w-14 bg-purple-900/50 rounded-2xl flex items-center justify-center text-purple-400 mb-6 group-hover:scale-110 transition-transform duration-300 border border-purple-500/20">
-              <Building2 size={28} />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-3">Furnishing Costs</h3>
-            <p className="text-slate-400 leading-relaxed">
-              Get detailed furnishing estimates for Studio, 1BR, or 2BR units based on Budget, Mid, or Premium finish standards.
-            </p>
-          </div>
-
-          {/* Feature 3 */}
-          <div className="group p-8 rounded-3xl bg-slate-800/50 border border-slate-700 hover:border-orange-500/50 hover:bg-slate-800/80 transition-all duration-300">
-            <div className="h-14 w-14 bg-orange-900/50 rounded-2xl flex items-center justify-center text-orange-400 mb-6 group-hover:scale-110 transition-transform duration-300 border border-orange-500/20">
-              <Shield size={28} />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-3">Buy vs. Rent</h3>
-            <p className="text-slate-400 leading-relaxed">
-              Compare the ROI of buying a unit on mortgage versus the "Rent-to-Rent" arbitrage model to find your best strategy.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- Calculator Page Component ---
-interface CalculatorPageProps {
-  isPaid: boolean;
-  onPaidSuccess: () => void;
-  onOpenPayment: () => void;
-  inputs: UserInputs;
-  setInputs: React.Dispatch<React.SetStateAction<UserInputs>>;
-  setResults: React.Dispatch<React.SetStateAction<CalculationResult | null>>;
-}
-
-const CalculatorPage: React.FC<CalculatorPageProps> = ({
-  isPaid,
-  onPaidSuccess,
-  onOpenPayment,
-  inputs,
-  setInputs,
-  setResults
-}) => {
-  // Removed local showPayment state
-  const [isCalculated, setIsCalculated] = useState(false);
-  const calculatorRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
-
-  const location = useLocation();
-
-  useEffect(() => {
-    // Only auto-scroll if we haven't just calculated (prevents jumping on back nav)
-    if (!isCalculated) {
-      calculatorRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, []);
-
-  // Check if we were redirected with intent to open payment
-  useEffect(() => {
-    if (location.state && (location.state as any).openPayment && !isPaid) {
-      onOpenPayment();
-      // Clean up state
-      window.history.replaceState({}, document.title);
-    }
-  }, [location.state, isPaid, onOpenPayment]);
-
-  const handleCalculate = async (forceProceed = false) => {
-    // 0. Fire-and-forget: Save Raw Calculation Data (Lead Capture)
-    try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
-
-      // Filter out irrelevant fields based on model
-      const cleanedInputs = { ...inputs };
-
-      // 1. Remove irrelevant fields
-      if (cleanedInputs.acquisitionModel === AcquisitionModel.SUBLEASE) {
-        // Rent-to-Rent: No mortgage needed
-        delete (cleanedInputs as any).interestRate;
-        delete (cleanedInputs as any).loanTermYears;
-        delete (cleanedInputs as any).downPaymentPercent;
-        delete (cleanedInputs as any).customPropertyPrice;
-      } else if (cleanedInputs.acquisitionModel === AcquisitionModel.BUY) {
-        // Buy: No Rent needed (though implicit)
-        delete (cleanedInputs as any).monthsDeposit;
-        delete (cleanedInputs as any).customMonthlyRent;
-      }
-
-      // 2. Enrich with defaults (Assumptions used in calculation)
-      const regionData = KENYA_REGIONS.find(r => r.id === inputs.regionId);
-      if (regionData) {
-        if (!cleanedInputs.customOccupancy) {
-          cleanedInputs.customOccupancy = regionData.avgOccupancy;
-        }
-        if (!cleanedInputs.customNightlyRate) {
-          cleanedInputs.customNightlyRate = regionData.avgNightlyRate[inputs.propertyType];
-        }
-        // Financials - Use Enum for consistency
-        if (cleanedInputs.acquisitionModel === AcquisitionModel.SUBLEASE && !cleanedInputs.customMonthlyRent) {
-          cleanedInputs.customMonthlyRent = regionData.avgRent[inputs.propertyType];
-        }
-        if (cleanedInputs.acquisitionModel === AcquisitionModel.BUY && !cleanedInputs.customPropertyPrice) {
-          cleanedInputs.customPropertyPrice = regionData.avgBuyPrice[inputs.propertyType];
-        }
-      }
-
-      // 3. Enrich Operating Costs (Assumptions)
-      if (!cleanedInputs.customCleaningCost) cleanedInputs.customCleaningCost = OPERATING_CONSTANTS.CLEANING_PER_DAY;
-      if (!cleanedInputs.customWifiCost) cleanedInputs.customWifiCost = OPERATING_CONSTANTS.INTERNET_MONTHLY;
-      if (!cleanedInputs.customNetflixCost) cleanedInputs.customNetflixCost = OPERATING_CONSTANTS.DSTV_MONTHLY;
-      if (!cleanedInputs.customElectricityCost) cleanedInputs.customElectricityCost = OPERATING_CONSTANTS.ELECTRICITY_MONTHLY[inputs.propertyType];
-      if (!cleanedInputs.customWaterCost) cleanedInputs.customWaterCost = OPERATING_CONSTANTS.WATER_MONTHLY[inputs.propertyType];
-
-      // Startup Assumptions
-      if (cleanedInputs.acquisitionModel === AcquisitionModel.SUBLEASE && !cleanedInputs.monthsDeposit) {
-        cleanedInputs.monthsDeposit = STARTUP_COSTS.DEPOSIT_MONTHS;
-      }
-
-      const payload = {
-        ...cleanedInputs,
-        meta: {
-          device: {
-            screen: `${window.innerWidth}x${window.innerHeight}`,
-            language: navigator.language,
-            userAgent: navigator.userAgent,
-            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            isMobile: window.innerWidth < 768,
-          },
-          // relying on server timestamp to avoid duplication confusion
-          // timestamp: new Date().toISOString() 
-        }
-      };
-
-      fetch(`${API_BASE_URL}/api/save-calculation`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
-      .then(res => {
-        if (!res.ok) throw new Error(res.statusText);
-        console.log("✅ Calculation saved to backend");
-      })
-      .catch(err => console.error('❌ Background save failed. Is the server running on port 3001?', err));
-    } catch (e) {
-      // Ignore errors, don't block user
-    }
-
-    // Paywall Gate: Require payment before generating report
-    if (!isPaid && !forceProceed) {
-      onOpenPayment();
-      return;
-    }
-
-    // 1. Fetch live market data first
-    let calculationInputs = { ...inputs };
-
-    try {
-      const marketData = await fetchMarketData(inputs);
-      if (marketData && marketData.averagePrice > 0) {
-        // Override the default/static costs with live market data
-        if (inputs.acquisitionModel === AcquisitionModel.BUY) {
-          calculationInputs.customPropertyPrice = marketData.averagePrice;
-        } else {
-          calculationInputs.customMonthlyRent = marketData.averagePrice; // For rent, avgPrice returned is rent
-        }
-      }
-    } catch (err) {
-      console.warn("Could not sync with market data, using defaults");
-    }
-
-    // 2. Calculate using the live data (or defaults if fetch failed)
-    const res = calculateROI(calculationInputs);
-    setResults(res);
-
-    // 3. Update inputs state to reflect what was used
-    setInputs(calculationInputs);
-
-    // 4. Navigate to Report page
-    navigate('/report');
-  };
-
-  return (
-    <div className="bg-slate-50 py-12" ref={calculatorRef}>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        <CalculatorStepper
-          inputs={inputs}
-          setInputs={setInputs}
-          onCalculate={handleCalculate}
-          isPaid={isPaid}
-        />
-      </div>
-
-    </div>
-  );
-};
+// Farming Imports
+import { FarmingCalculatorPage } from './components/farming/FarmingCalculatorPage';
+import { FarmingReportPage } from './components/farming/FarmingReportPage';
+import { calculateFarmingROI } from './services/farmingCalculatorService';
+import { CropType, FarmingUserInputs, FarmingCalculationResult } from './types';
+import { Onboarding } from './components/onboarding/Onboarding';
 
 // --- Report Page Component ---
 interface ReportPageProps {
@@ -302,7 +50,7 @@ const ReportPage: React.FC<ReportPageProps> = ({ results, inputs, setInputs, set
   // Redirect if no results (e.g. direct valid access)
   useEffect(() => {
     if (!results) {
-      navigate('/calculator');
+      navigate('/bnb-calculator');
     }
   }, [results, navigate]);
 
@@ -327,7 +75,13 @@ const ReportPage: React.FC<ReportPageProps> = ({ results, inputs, setInputs, set
   if (!results) return null;
 
   return (
-    <div className="bg-slate-50 min-h-screen pb-12">
+    <div className="bg-white min-h-screen pb-12 relative overflow-hidden">
+      {/* Immersive Background Blobs */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-yellow/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-brand-navy/5 rounded-full blur-[120px]" />
+      </div>
+
       <ReportFilters
         inputs={inputs}
         onFilterChange={handleFilterChange}
@@ -335,13 +89,18 @@ const ReportPage: React.FC<ReportPageProps> = ({ results, inputs, setInputs, set
         disabled={!isPaid}
       />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-in fade-in duration-500 mt-8">
+      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-in fade-in duration-500 mt-12">
 
         {/* Header */}
-        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${!isPaid ? 'opacity-50 blur-[2px] select-none pointer-events-none' : ''}`}>
-          <h2 className="text-3xl font-bold text-slate-900">Analysis Report</h2>
-
-
+        <div className={`flex flex-col gap-4 ${!isPaid ? 'opacity-50 blur-[2px] select-none pointer-events-none' : ''}`}>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-yellow/20 border border-brand-yellow/30 text-brand-navy text-[10px] font-black uppercase tracking-widest w-fit">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-navy opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-navy"></span>
+            </span>
+            Live Market Intelligence
+          </div>
+          <h2 className="text-4xl sm:text-5xl font-black text-brand-navy uppercase tracking-tight">Analysis Report</h2>
         </div>
 
         <ResultsDashboard
@@ -403,6 +162,23 @@ const App: React.FC = () => {
     return null;
   });
 
+  // Farming State
+  const [farmingInputs, setFarmingInputs] = useState<FarmingUserInputs>({
+    cropType: CropType.MAIZE,
+    acreage: 1,
+    landOwnership: 'Own',
+    leaseCost: 0,
+    leaseCycle: 'Per Year',
+  });
+
+  const [farmingResults, setFarmingResults] = useState<FarmingCalculationResult | null>(null);
+
+  const handleFarmingCalculate = () => {
+     const res = calculateFarmingROI(farmingInputs);
+     setFarmingResults(res);
+     navigate('/farming-report');
+  };
+
   // Persistence Effects
   useEffect(() => {
     localStorage.setItem('calculatorInputs', JSON.stringify(inputs));
@@ -425,58 +201,83 @@ const App: React.FC = () => {
     setShowPaymentModal(false);
   };
 
+  const handleCompleteOnboarding = (goal?: string) => {
+    // If the user selected a specific goal, drop them directly into it
+    if (goal === 'airbnb') {
+      navigate('/bnb-calculator');
+    } else if (goal === 'farming') {
+      navigate('/farming-calculator');
+    } else {
+      navigate('/bnb-calculator');
+    }
+  };
+
   const handleOpenPayment = () => {
     setShowPaymentModal(true);
   };
 
+  const handleCalculate = async (forceProceed = false) => {
+    // 2. Calculate using the defaults
+    const res = calculateROI(inputs);
+    setResults(res);
+
+    // 4. Navigate to Report page
+    navigate('/bnb-report');
+  };
+
+  const isImmersivePage = ['/bnb-calculator', '/bnb-report', '/farming-calculator', '/farming-report', '/onboarding'].some(path => 
+    location.pathname.toLowerCase().includes(path)
+  );
+
   return (
-    <div className="min-h-screen flex flex-col font-sans text-slate-800">
+    <div className="min-h-screen bg-brand-white flex flex-col font-sans selection:bg-brand-yellow/30">
       <AnalyticsDefault />
-      {/* Navbar */}
-      <nav className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-              <div className="bg-emerald-600 p-2 rounded-lg text-white">
-                <Building2 size={24} />
+      {/* Navbar - Hidden on calculator page for immersive experience */}
+      {!isImmersivePage && (
+        <nav className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between h-16 items-center">
+              <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/bnb-calculator')}>
+                <div className="bg-brand-navy p-2 rounded-lg text-brand-yellow">
+                  <Building2 size={24} />
+                </div>
+                <span className="font-black text-xl tracking-tight text-brand-navy">Kenya<span className="text-brand-yellow">Hustle</span></span>
               </div>
-              <span className="font-bold text-xl tracking-tight text-slate-900">Airbnb<span className="text-emerald-600">Kenya</span>ROI</span>
-            </div>
-            <div className="flex gap-4">
-              {!isPaid && (
-                <button
-                  onClick={() => navigate('/calculator')}
-                  className="text-sm font-medium text-slate-600 hover:text-emerald-600"
+              
+              <div className="hidden md:flex items-center space-x-8">
+                <button 
+                  onClick={() => navigate('/bnb-calculator')}
+                  className="text-slate-600 hover:text-brand-navy font-bold transition-colors"
                 >
-                  Calculator
+                  Calculators
                 </button>
-              )}
-              {isPaid && (
-                <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wide">
-                  Pro Unlocked
-                </span>
-              )}
+                <button className="text-slate-600 hover:text-brand-navy font-bold transition-colors">Pricing</button>
+                <button className="text-brand-navy font-black text-sm px-5 py-2.5 rounded-xl border-2 border-brand-navy hover:bg-brand-navy hover:text-white transition-all">
+                  LOG IN
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      )}
 
-      <main className="flex-grow">
+      {/* Main Content */}
+      <main className="flex-1">
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<Navigate to="/onboarding" replace />} />
+          <Route path="/onboarding" element={<Onboarding onComplete={handleCompleteOnboarding} />} />
+          <Route path="/bnb-calculator" element={
+            <div className="max-w-7xl mx-auto px-4 py-4">
+              <CalculatorStepper 
+                inputs={inputs} 
+                setInputs={setInputs} 
+                onCalculate={handleCalculate}
+                isPaid={isPaid}
+              />
+            </div>
+          } />
           <Route
-            path="/calculator"
-            element={<CalculatorPage
-              isPaid={isPaid}
-              onPaidSuccess={handlePaidSuccess}
-              onOpenPayment={handleOpenPayment}
-              inputs={inputs}
-              setInputs={setInputs}
-              setResults={setResults}
-            />}
-          />
-          <Route
-            path="/report"
+            path="/bnb-report"
             element={<ReportPage
               results={results}
               inputs={inputs}
@@ -488,6 +289,28 @@ const App: React.FC = () => {
             />}
           />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
+          {/* Farming Routes */}
+          <Route 
+             path="/farming-calculator" 
+             element={
+               <FarmingCalculatorPage 
+                  inputs={farmingInputs} 
+                  setInputs={setFarmingInputs}
+                  onCalculate={handleFarmingCalculate}
+               />
+             } 
+          />
+          <Route 
+             path="/farming-report" 
+             element={
+               <FarmingReportPage
+                  results={farmingResults}
+                  inputs={farmingInputs}
+                  onRecalculate={() => navigate('/farming-calculator')}
+               />
+             } 
+          />
         </Routes>
       </main>
 
@@ -499,16 +322,56 @@ const App: React.FC = () => {
         }}
       />
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-12">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-slate-500 text-sm">
-          <p>© 2025 Airbnb Kenya ROI. Data is for estimation only.</p>
-          <div className="flex gap-6 mt-4 md:mt-0 items-center">
-            <button onClick={() => navigate('/privacy-policy')} className="hover:text-emerald-600 transition-colors">Privacy Policy</button>
-            <a href="https://www.instagram.com/kenya_hustle/" target="_blank" rel="noopener noreferrer" className="hover:text-emerald-600"><Instagram size={20} /></a>
+      {/* Footer - Hidden on calculator page */}
+      {!isImmersivePage && (
+        <footer className="bg-brand-navy text-white pt-20 pb-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+              <div className="space-y-6">
+                <div className="flex items-center gap-2">
+                  <Building2 className="text-brand-yellow" size={28} />
+                  <span className="font-black text-2xl tracking-tight">Kenya<span className="text-brand-yellow">Hustle</span></span>
+                </div>
+                <p className="text-slate-400 font-medium">
+                  Empowering the next generation of Kenyan titans with hard data and smart tools.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-black text-lg mb-6">Tools</h4>
+                <ul className="space-y-4 text-slate-400 font-bold">
+                  <li className="hover:text-brand-yellow cursor-pointer transition-colors">Airbnb Calculator</li>
+                  <li className="hover:text-brand-yellow cursor-pointer transition-colors">Farming ROI</li>
+                  <li className="hover:text-brand-yellow cursor-pointer transition-colors">Retail Ledger</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-black text-lg mb-6">Hustle</h4>
+                <ul className="space-y-4 text-slate-400 font-bold">
+                  <li className="hover:text-brand-yellow cursor-pointer transition-colors">Success Stories</li>
+                  <li className="hover:text-brand-yellow cursor-pointer transition-colors">Market Reports</li>
+                  <li className="hover:text-brand-yellow cursor-pointer transition-colors">Premium Mentors</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-black text-lg mb-6">Legal</h4>
+                <ul className="space-y-4 text-slate-400 font-bold">
+                  <li className="hover:text-brand-yellow cursor-pointer transition-colors" onClick={() => navigate('/privacy')}>Privacy Policy</li>
+                  <li className="hover:text-brand-yellow cursor-pointer transition-colors">Terms of Service</li>
+                </ul>
+              </div>
+            </div>
+            <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-slate-500 font-bold text-sm">
+                © 2026 Kenya Hustle. Build different.
+              </p>
+              <div className="flex items-center gap-6">
+                <Instagram size={20} className="text-slate-500 hover:text-white cursor-pointer" />
+                <Twitter size={20} className="text-slate-500 hover:text-white cursor-pointer" />
+              </div>
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 };

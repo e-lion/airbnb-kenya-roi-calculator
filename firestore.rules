@@ -1,8 +1,30 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Global deny by default
     match /{document=**} {
       allow read, write: if false;
+    }
+
+    // Analytics Sessions: Append-Only, strictly structured
+    match /analytics_sessions/{sessionId} {
+      allow read, update, delete: if false;
+      allow create: if 
+        request.resource.data.keys().hasAll(['sessionId', 'timestamp', 'userAgent']) &&
+        request.resource.data.sessionId is string &&
+        request.resource.data.sessionId.size() > 0 &&
+        request.resource.data.sessionId.size() < 100;
+    }
+
+    // Analytics Events: Append-Only, strictly structured
+    match /analytics_events/{eventId} {
+      allow read, update, delete: if false;
+      allow create: if 
+        request.resource.data.keys().hasAll(['sessionId', 'eventName', 'timestamp']) &&
+        request.resource.data.sessionId is string &&
+        request.resource.data.eventName is string &&
+        request.resource.data.eventName.size() < 100 &&
+        (!('details' in request.resource.data) || request.resource.data.details is map || request.resource.data.details is string);
     }
   }
 }

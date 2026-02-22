@@ -10,10 +10,23 @@ export enum AcquisitionModel {
   SUBLEASE = 'Sublease (Rent-to-Rent)',
 }
 
+export enum PaymentMethod {
+  CASH = 'Cash',
+  MORTGAGE = 'Mortgage',
+}
+
 export enum FurnishingStandard {
   BUDGET = 'Budget',
   MID_RANGE = 'Mid-Range',
   PREMIUM = 'Premium',
+}
+
+export enum CropType {
+  MAIZE = 'Maize',
+  POTATOES = 'Potatoes',
+  CABBAGE = 'Cabbage',
+  TOMATOES = 'Tomatoes',
+  BEANS = 'Beans',
 }
 
 export interface RegionData {
@@ -41,6 +54,7 @@ export interface UserInputs {
   customOccupancy?: number;
   customNightlyRate?: number;
   // Buy specific
+  paymentMethod?: PaymentMethod;
   downPaymentPercent?: number;
   interestRate?: number;
   loanTermYears?: number;
@@ -82,6 +96,7 @@ export interface CalculationResult {
     utilityDeposits: number;
     fixtures: number;
     total: number;
+    maintenance: number;
   };
 
   // Granular Monthly Opex Breakdown

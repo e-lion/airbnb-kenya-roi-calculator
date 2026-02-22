@@ -1,4 +1,4 @@
-import { PropertyType, RegionData } from './types';
+import { PropertyType, RegionData, CropType } from './types';
 
 export const KENYA_REGIONS: RegionData[] = [
   {
@@ -132,3 +132,71 @@ export const ISP_PROVIDERS = {
 
 export const DEFAULT_MORTGAGE_RATE = 14.5; // Current Kenya Avg
 export const PAYMENT_AMOUNT_KES = Number(import.meta.env.VITE_PAYMENT_AMOUNT) || 99;
+
+export const FARMING_CONSTANTS = {
+  [CropType.MAIZE]: {
+    name: 'Maize (90kg Bags)',
+    unit: 'Bags',
+    avgYieldPerAcre: 30, // 25-40 bags
+    avgPricePerUnit: 3500, // 2500 - 5500
+    costs: {
+      seeds: 4000,
+      fertilizer: 15000,
+      labor: 10000,
+      pestControl: 5000,
+      other: 5000,
+    }
+  },
+  [CropType.POTATOES]: {
+    name: 'Potatoes (50kg Bags)',
+    unit: 'Bags',
+    avgYieldPerAcre: 80, // 60-100 bags
+    avgPricePerUnit: 3000, // 2000 - 5000
+    costs: {
+      seeds: 25000,
+      fertilizer: 20000,
+      labor: 15000,
+      pestControl: 10000,
+      other: 8000,
+    }
+  },
+  [CropType.CABBAGE]: {
+    name: 'Cabbage (Heads)',
+    unit: 'Heads',
+    avgYieldPerAcre: 15000, // 10k-20k heads
+    avgPricePerUnit: 30, // 15-50
+    costs: {
+      seeds: 8000,
+      fertilizer: 25000,
+      labor: 20000,
+      pestControl: 15000,
+      other: 10000,
+    }
+  },
+  [CropType.TOMATOES]: {
+    name: 'Tomatoes (Crates)',
+    unit: 'Crates',
+    avgYieldPerAcre: 150, // 100-200 crates
+    avgPricePerUnit: 4000, // 2500 - 8000
+    costs: {
+      seeds: 15000,
+      fertilizer: 30000,
+      labor: 30000,
+      pestControl: 25000,
+      other: 15000,
+    }
+  },
+  [CropType.BEANS]: {
+    name: 'Beans (90kg Bags)',
+    unit: 'Bags',
+    avgYieldPerAcre: 10, // 8-15
+    avgPricePerUnit: 9000, // 7000 - 12000
+    costs: {
+      seeds: 6000,
+      fertilizer: 8000,
+      labor: 8000,
+      pestControl: 4000,
+      other: 3000,
+    }
+  }
+};
